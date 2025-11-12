@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Token 使用统计 - OKX量化交易</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .stat-card .sub-value {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .content-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            font-weight: 600;
+            color: #666;
+            font-size: 13px;
+        }
+
+        td {
+            font-size: 14px;
+            color: #333;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-size: 16px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .model-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .cost-highlight {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        @media (max-width: 1024px) {
+            .content-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .btn {
+                flex: 1;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>
+                <span>🤖</span>
+                AI Token 使用统计
+            </h1>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="window.location.href='/'">返回Dashboard</button>
+                <button class="btn btn-primary" onclick="refreshData()">🔄 刷新数据</button>
+            </div>
+        </div>
+
+        <!-- 今日统计卡片 -->
+        <div class="stats-grid" id="todayStats">
+            <div class="stat-card">
+                <div class="icon">📞</div>
+                <div class="label">今日API调用</div>
+                <div class="value" id="todayApiCalls">-</div>
+                <div class="sub-value">成功 <span id="successCount">-</span> | 失败 <span id="errorCount">-</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">💬</div>
+                <div class="label">总Token消耗</div>
+                <div class="value" id="totalTokens">-</div>
+                <div class="sub-value">输入 <span id="inputTokens">-</span> | 输出 <span id="outputTokens">-</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">💰</div>
+                <div class="label">今日总费用</div>
+                <div class="value cost-highlight" id="totalCost">¥0.00</div>
+                <div class="sub-value">输入 ¥<span id="inputCost">0.00</span> | 输出 ¥<span id="outputCost">0.00</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📊</div>
+                <div class="label">平均每次调用</div>
+                <div class="value" id="avgTokens">-</div>
+                <div class="sub-value">平均费用 ¥<span id="avgCost">0.00</span></div>
+            </div>
+        </div>
+
+        <!-- 图表和模型统计 -->
+        <div class="content-row">
+            <div class="card">
+                <h2>📈 最近7天趋势</h2>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>🎯 模型使用统计</h2>
+                <div id="modelStats" class="table-container"></div>
+            </div>
+        </div>
+
+        <!-- 最近调用记录 -->
+        <div class="card">
+            <h2>📋 最近API调用记录</h2>
+            <div class="table-container">
+                <table id="recentCallsTable">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>模型</th>
+                            <th>输入Token</th>
+                            <th>输出Token</th>
+                            <th>总Token</th>
+                            <th>费用</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentCallsBody">
+                        <tr>
+                            <td colspan="7" class="loading">
+                                <div class="spinner"></div>
+                                加载中...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let trendChart = null;
+
+        // 加载今日统计
+        async function loadTodayStats() {
+            try {
+                const response = await fetch('/api/token/today');
+                const result = await response.json();
+
+                if (result.success) {
+                    const data = result.data;
+
+                    document.getElementById('todayApiCalls').textContent = data.api_calls || 0;
+                    document.getElementById('successCount').textContent = data.success_count || 0;
+                    document.getElementById('errorCount').textContent = data.error_count || 0;
+                    document.getElementById('totalTokens').textContent = (data.total_tokens || 0).toLocaleString();
+                    document.getElementById('inputTokens').textContent = (data.total_prompt_tokens || 0).toLocaleString();
+                    document.getElementById('outputTokens').textContent = (data.total_completion_tokens || 0).toLocaleString();
+                    document.getElementById('totalCost').textContent = `¥${(data.total_cost || 0).toFixed(6)}`;
+                    document.getElementById('inputCost').textContent = (data.total_input_cost || 0).toFixed(6);
+                    document.getElementById('outputCost').textContent = (data.total_output_cost || 0).toFixed(6);
+
+                    const avgTokens = data.api_calls > 0 ? Math.round(data.total_tokens / data.api_calls) : 0;
+                    const avgCost = data.api_calls > 0 ? (data.total_cost / data.api_calls) : 0;
+                    document.getElementById('avgTokens').textContent = avgTokens.toLocaleString();
+                    document.getElementById('avgCost').textContent = avgCost.toFixed(6);
+
+                    // 更新模型统计
+                    updateModelStats(data.models || []);
+                }
+            } catch (error) {
+                console.error('加载今日统计失败:', error);
+            }
+        }
+
+        // 更新模型统计
+        function updateModelStats(models) {
+            const container = document.getElementById('modelStats');
+            if (models.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">暂无数据</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>模型</th><th>调用次数</th><th>Token</th><th>费用</th></tr></thead><tbody>';
+            models.forEach(model => {
+                html += `
+                    <tr>
+                        <td><span class="model-badge">${model.model_name}</span></td>
+                        <td>${model.calls}</td>
+                        <td>${model.total_tokens.toLocaleString()}</td>
+                        <td class="cost-highlight">¥${model.cost.toFixed(6)}</td>
+                    </tr>
+                `;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // 加载历史趋势
+        async function loadHistoryTrend() {
+            try {
+                const response = await fetch('/api/token/history?days=7');
+                const result = await response.json();
+
+                if (result.success) {
+                    const history = result.data;
+                    updateTrendChart(history);
+                }
+            } catch (error) {
+                console.error('加载历史趋势失败:', error);
+            }
+        }
+
+        // 更新趋势图表
+        function updateTrendChart(history) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+
+            // 反转数据（从旧到新）
+            history.reverse();
+
+            const labels = history.map(item => item.date.substring(5)); // 只显示月-日
+            const tokenData = history.map(item => item.total_tokens);
+            const costData = history.map(item => item.total_cost);
+
+            if (trendChart) {
+                trendChart.destroy();
+            }
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Token消耗',
+                            data: tokenData,
+                            borderColor: 'rgb(102, 126, 234)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            yAxisID: 'y',
+                            tension: 0.3
+                        },
+                        {
+                            label: '费用（元）',
+                            data: costData,
+                            borderColor: 'rgb(118, 75, 162)',
+                            backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                            yAxisID: 'y1',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Token数量'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '费用（元）'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 加载最近调用记录
+        async function loadRecentCalls() {
+            try {
+                const response = await fetch('/api/token/recent_calls?limit=20');
+                const result = await response.json();
+
+                if (result.success) {
+                    const calls = result.data;
+                    updateRecentCallsTable(calls);
+                }
+            } catch (error) {
+                console.error('加载最近调用记录失败:', error);
+            }
+        }
+
+        // 更新最近调用记录表格
+        function updateRecentCallsTable(calls) {
+            const tbody = document.getElementById('recentCallsBody');
+
+            if (calls.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;padding:20px;">暂无调用记录</td></tr>';
+                return;
+            }
+
+            let html = '';
+            calls.forEach(call => {
+                const time = new Date(call.created_at).toLocaleString('zh-CN', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const statusClass = call.success ? 'success' : 'error';
+                const statusText = call.success ? '✓ 成功' : '✗ 失败';
+
+                html += `
+                    <tr>
+                        <td>${time}</td>
+                        <td><span class="model-badge">${call.model_name}</span></td>
+                        <td>${call.prompt_tokens.toLocaleString()}</td>
+                        <td>${call.completion_tokens.toLocaleString()}</td>
+                        <td>${call.total_tokens.toLocaleString()}</td>
+                        <td class="cost-highlight">¥${call.total_cost.toFixed(6)}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // 刷新所有数据
+        async function refreshData() {
+            await Promise.all([
+                loadTodayStats(),
+                loadHistoryTrend(),
+                loadRecentCalls()
+            ]);
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            refreshData();
+
+            // 每30秒自动刷新
+            setInterval(refreshData, 30000);
+        };
+    </script>
+</body>
+</html>

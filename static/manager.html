@@ -1,0 +1,3173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DesicAi系统 - 管理控制台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Markdown parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+        }
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @media (max-width: 768px) {
+            .mobile-hide { display: none !important; }
+            .mobile-full { width: 100% !important; }
+            .mobile-text-xs { font-size: 0.75rem !important; }
+            .mobile-text-sm { font-size: 0.875rem !important; }
+            .mobile-p-2 { padding: 0.5rem !important; }
+        }
+
+        /* Markdown Rendered Content Styles */
+        .markdown-content h1 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            color: #60a5fa;
+            border-bottom: 2px solid #374151;
+            padding-bottom: 0.5rem;
+        }
+        .markdown-content h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: #93c5fd;
+        }
+        .markdown-content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #bfdbfe;
+        }
+        .markdown-content p {
+            margin-bottom: 0.75rem;
+            line-height: 1.75;
+        }
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .markdown-content li {
+            margin-bottom: 0.25rem;
+        }
+        .markdown-content strong {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+        .markdown-content code {
+            background-color: #1f2937;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: #10b981;
+        }
+        .markdown-content pre {
+            background-color: #111827;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 0.75rem;
+        }
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #d1d5db;
+        }
+        .markdown-content blockquote {
+            border-left: 4px solid #3b82f6;
+            padding-left: 1rem;
+            color: #9ca3af;
+            font-style: italic;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Terminal Console Styles */
+        .terminal-window {
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        .terminal-header {
+            background: linear-gradient(to bottom, #3a3a3a, #2d2d2d);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .terminal-button.red { background: #ff5f56; }
+        .terminal-button.yellow { background: #ffbd2e; }
+        .terminal-button.green { background: #27c93f; }
+        .terminal-title {
+            flex: 1;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .terminal-body {
+            background: #0d1117;
+            padding: 16px;
+            height: 500px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #c9d1d9;
+        }
+        .terminal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        .terminal-body::-webkit-scrollbar-track {
+            background: #161b22;
+        }
+        .terminal-body::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+        .terminal-body::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+        .log-line {
+            margin: 0;
+            padding: 2px 0;
+            word-wrap: break-word;
+        }
+        .log-timestamp {
+            color: #6e7681;
+            margin-right: 8px;
+        }
+        .log-level-SUCCESS {
+            color: #3fb950;
+            font-weight: 600;
+        }
+        .log-level-INFO {
+            color: #58a6ff;
+        }
+        .log-level-WARNING {
+            color: #d29922;
+            font-weight: 600;
+        }
+        .log-level-ERROR {
+            color: #f85149;
+            font-weight: 700;
+            background: rgba(248, 81, 73, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .log-level-DEBUG {
+            color: #8b949e;
+            opacity: 0.8;
+        }
+        .log-message {
+            color: #c9d1d9;
+        }
+        .log-message-error {
+            color: #ffa198;
+        }
+        .log-message-warning {
+            color: #e3b341;
+        }
+        .terminal-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 14px;
+            background: #58a6ff;
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        /* Custom Select with Icons */
+        .custom-select {
+            position: relative;
+            width: 100%;
+        }
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 8px 12px;
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .custom-select-trigger:hover {
+            background: #4b5563;
+        }
+        .custom-select-trigger:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #3b82f6;
+        }
+        .custom-select-trigger img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .custom-select-arrow {
+            margin-left: auto;
+            transition: transform 0.2s;
+        }
+        .custom-select.active .custom-select-arrow {
+            transform: rotate(180deg);
+        }
+        .custom-select-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 4px;
+            background: #1f2937;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        .custom-select.active .custom-select-options {
+            display: block;
+        }
+        .custom-select-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .custom-select-option:hover {
+            background: #374151;
+        }
+        .custom-select-option.selected {
+            background: #3b82f6;
+        }
+        .custom-select-option img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .custom-select-options::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-select-options::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        .custom-select-options::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+        .custom-select-options::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        /* Notification Toast Styles */
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 320px;
+            max-width: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 16px 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            z-index: 9999;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .notification-toast.show {
+            transform: translateX(0);
+        }
+        .notification-toast.success {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .notification-toast.error {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .notification-toast.warning {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #333;
+        }
+        .notification-toast.info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .notification-icon {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+        }
+        .notification-content {
+            flex: 1;
+            line-height: 1.5;
+        }
+        .notification-close {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+        /* Loading Overlay Styles */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(4px);
+        }
+        .loading-overlay.show {
+            display: flex;
+        }
+        .loading-spinner {
+            text-align: center;
+        }
+        .spinner-circle {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+    <!-- Notification Toast Container -->
+    <div id="notificationToast" class="notification-toast">
+        <div class="notification-icon" id="notificationIcon"></div>
+        <div class="notification-content" id="notificationContent"></div>
+        <div class="notification-close" id="notificationClose" onclick="hideNotification()">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner-circle"></div>
+            <div class="loading-text" id="loadingText">加载中...</div>
+        </div>
+    </div>
+
+    <div class="min-h-screen">
+        <!-- Header with Navigation -->
+        <header class="bg-gray-800 shadow-lg border-b border-gray-700 sticky top-0 z-40">
+            <div class="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-lg sm:text-2xl font-bold text-white">DesicAi</h1>
+                            <p class="text-xs sm:text-sm text-gray-400 mobile-hide">管理控制台</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <a href="/dashboard" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-200 flex items-center space-x-2 text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span>数据分析</span>
+                        </a>
+                        <span class="text-xs text-gray-500 mobile-hide" id="lastUpdate">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-2 sm:px-4 py-3 sm:py-6">
+            <!-- Tab Navigation -->
+            <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700 mb-4">
+                <div class="flex overflow-x-auto scrollbar-hide border-b border-gray-700">
+                    <button onclick="switchTab('dashboard')" id="tab-dashboard" class="px-4 py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-500 whitespace-nowrap">
+                        仪表盘
+                    </button>
+                    <button onclick="switchTab('accounts')" id="tab-accounts" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">
+                        OKX账户
+                    </button>
+                    <button onclick="switchTab('ai-config')" id="tab-ai-config" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">
+                        AI配置
+                    </button>
+                    <button onclick="switchTab('trade-config')" id="tab-trade-config" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">
+                        交易配置
+                    </button>
+                    <button onclick="switchTab('collector-config')" id="tab-collector-config" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">
+                        数据采集器
+                    </button>
+                    <button onclick="switchTab('mysql-config')" id="tab-mysql-config" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">
+                        MySQL配置
+                    </button>
+                    <button onclick="switchTab('feishu-config')" id="tab-feishu-config" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">
+                        飞书机器人
+                    </button>
+                    <button onclick="switchTab('logs')" id="tab-logs" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">
+                        查看日志
+                    </button>
+                    <button onclick="switchTab('help')" id="tab-help" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">
+                        帮助文档
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="content-dashboard" class="tab-content">
+                <!-- Environment Status Cards -->
+                <div class="bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-700 mb-4">
+                    <h3 class="text-md font-semibold text-white mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        环境检测
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
+                        <div class="bg-gray-700/30 rounded p-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400">.env配置</span>
+                                <span id="envFile" class="text-gray-400">检测中...</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700/30 rounded p-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400">OKX API</span>
+                                <span id="envOkxApi" class="text-gray-400">检测中...</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700/30 rounded p-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400">AI配置</span>
+                                <span id="envAi" class="text-gray-400">检测中...</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700/30 rounded p-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400">数据采集器</span>
+                                <span id="envCollector" class="text-gray-400">检测中...</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700/30 rounded p-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400">OKX网络</span>
+                                <span id="envOkx" class="text-gray-400">检测中...</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700/30 rounded p-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400">系统Prompt</span>
+                                <span id="envPrompt" class="text-gray-400">检测中...</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700/30 rounded p-3 cursor-pointer hover:bg-gray-700/50 col-span-2 md:col-span-1" onclick="showProxyConfigModal()">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400">代理设置</span>
+                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Status Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <!-- Bot Service -->
+                    <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-white">交易机器人</h3>
+                                    <p class="text-sm text-gray-400" id="botStatusText">检查中...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
+                            <div class="bg-gray-700/50 rounded p-2">
+                                <div class="text-gray-400 text-xs">PID</div>
+                                <div class="text-white font-mono" id="botPid">--</div>
+                            </div>
+                            <div class="bg-gray-700/50 rounded p-2">
+                                <div class="text-gray-400 text-xs">状态</div>
+                                <div id="botStatus" class="text-gray-400">--</div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="startBot()" id="btnStartBot" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 text-sm font-medium">
+                                启动
+                            </button>
+                            <button onclick="stopBot()" id="btnStopBot" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition duration-200 text-sm font-medium" disabled>
+                                停止
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Collector Service -->
+                    <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-white">数据采集器</h3>
+                                    <p class="text-sm text-gray-400" id="collectorStatusText">检查中...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
+                            <div class="bg-gray-700/50 rounded p-2">
+                                <div class="text-gray-400 text-xs">PID</div>
+                                <div class="text-white font-mono" id="collectorPid">--</div>
+                            </div>
+                            <div class="bg-gray-700/50 rounded p-2">
+                                <div class="text-gray-400 text-xs">运行时长</div>
+                                <div class="text-white font-mono text-xs" id="collectorUptime">--</div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="startCollector()" id="btnStartCollector" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 text-sm font-medium">
+                                启动
+                            </button>
+                            <button onclick="stopCollector()" id="btnStopCollector" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition duration-200 text-sm font-medium" disabled>
+                                停止
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center pulse-glow">
+                                    <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-white">快捷操作</h3>
+                                    <p class="text-sm text-gray-400">批量控制</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <button onclick="startAllServices()" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 text-sm font-medium flex items-center justify-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>启动所有服务</span>
+                            </button>
+                            <button onclick="stopAllServices()" class="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition duration-200 text-sm font-medium flex items-center justify-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                                </svg>
+                                <span>停止所有服务</span>
+                            </button>
+                            <button onclick="refreshDashboard()" class="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition duration-200 text-sm font-medium flex items-center justify-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span>刷新状态</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OKX Accounts Tab -->
+            <div id="content-accounts" class="tab-content hidden">
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+                    <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                            OKX账户管理
+                        </h2>
+                        <button onclick="showAddAccountModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 text-sm font-medium">
+                            + 添加账户
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-700">
+                                        <th class="text-left py-3 px-4 text-gray-400 font-medium">账户名称</th>
+                                        <th class="text-left py-3 px-4 text-gray-400 font-medium">API Key</th>
+                                        <th class="text-left py-3 px-4 text-gray-400 font-medium">模式</th>
+                                        <th class="text-left py-3 px-4 text-gray-400 font-medium">服务器</th>
+                                        <th class="text-left py-3 px-4 text-gray-400 font-medium">更新时间</th>
+                                        <th class="text-right py-3 px-4 text-gray-400 font-medium">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="accountsTable">
+                                    <tr>
+                                        <td colspan="6" class="text-center py-8 text-gray-500">加载中...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                            <p class="text-blue-400 text-sm">
+                                <strong>当前使用账户:</strong>
+                                <span id="currentAccount">加载中...</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Config Tab -->
+            <div id="content-ai-config" class="tab-content hidden">
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+                    <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            AI模型配置
+                        </h2>
+                        <button onclick="saveAIConfig()" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 text-sm font-medium">
+                            保存配置
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-6" id="aiConfigForm">
+                            <!-- AI Provider Selection -->
+                            <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                                <label class="block text-sm font-medium text-gray-300 mb-2">AI提供商</label>
+                                <select id="cfgAiProvider" onchange="toggleAIProviderConfig()" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="doubao">豆包 (Doubao)</option>
+                                    <option value="deepseek">DeepSeek</option>
+                                    <option value="qwen">通义千问 (Qwen)</option>
+                                </select>
+                            </div>
+
+                            <!-- Doubao Config -->
+                            <div id="doubaoConfig" class="bg-blue-900/20 rounded-lg p-4 border border-blue-700/50">
+                                <h3 class="text-blue-400 font-semibold mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                    豆包配置
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">API Key</label>
+                                        <input type="text" id="cfgDoubaoApiKey" placeholder="输入豆包API Key" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">Endpoint ID</label>
+                                        <input type="text" id="cfgDoubaoEndpoint" placeholder="输入Endpoint ID" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">模型</label>
+                                        <select id="cfgDoubaoModel" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="doubao-seed-1-6-lite-251015">lite-251015</option>
+                                            <option value="doubao-seed-1-6-flash-250828">flash-250828</option>
+                                            <option value="doubao-seed-1-6-thinking-250715">thinking-250715</option>
+                                            <option value="doubao-seed-1-6-251015">standard-251015</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">超时时间(秒)</label>
+                                        <input type="number" id="cfgDoubaoTimeout" value="50" min="10" max="300" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- DeepSeek Config -->
+                            <div id="deepseekConfig" class="bg-purple-900/20 rounded-lg p-4 border border-purple-700/50">
+                                <h3 class="text-purple-400 font-semibold mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                    DeepSeek配置
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">API Key</label>
+                                        <input type="text" id="cfgDeepseekApiKey" placeholder="输入DeepSeek API Key" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">模型</label>
+                                        <select id="cfgDeepseekModel" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="deepseek-chat">deepseek-chat</option>
+                                            <option value="deepseek-reasoner">deepseek-reasoner</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">超时时间(秒)</label>
+                                        <input type="number" id="cfgDeepseekTimeout" value="20" min="10" max="300" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Qwen Config -->
+                            <div id="qwenConfig" class="bg-green-900/20 rounded-lg p-4 border border-green-700/50">
+                                <h3 class="text-green-400 font-semibold mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                    通义千问配置
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">API Key</label>
+                                        <input type="text" id="cfgQwenApiKey" placeholder="输入Qwen API Key" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">模型</label>
+                                        <select id="cfgQwenModel" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="qwen-max">qwen-max</option>
+                                            <option value="qwen-plus">qwen-plus</option>
+                                            <option value="qwen-turbo">qwen-turbo</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">超时时间(秒)</label>
+                                        <input type="number" id="cfgQwenTimeout" value="20" min="10" max="300" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trade Config Tab -->
+            <div id="content-trade-config" class="tab-content hidden">
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700 mb-4">
+                    <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            交易参数配置
+                        </h2>
+                        <button onclick="saveTradeConfig()" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 text-sm font-medium">
+                            保存配置
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">交易标的</label>
+                                <div class="custom-select" id="customInstIdSelect">
+                                    <div class="custom-select-trigger" tabindex="0">
+                                        <img src="/icons/btc.png" alt="BTC" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                        <span>BTC-USDT-SWAP</span>
+                                        <svg class="custom-select-arrow w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="custom-select-options">
+                                        <div class="custom-select-option selected" data-value="BTC-USDT-SWAP">
+                                            <img src="/icons/btc.png" alt="BTC" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>BTC-USDT-SWAP (比特币)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="ETH-USDT-SWAP">
+                                            <img src="/icons/eth.png" alt="ETH" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>ETH-USDT-SWAP (以太坊)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="SOL-USDT-SWAP">
+                                            <img src="/icons/sol.png" alt="SOL" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>SOL-USDT-SWAP (Solana)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="BNB-USDT-SWAP">
+                                            <img src="/icons/bnb.png" alt="BNB" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>BNB-USDT-SWAP (币安币)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="HYPE-USDT-SWAP">
+                                            <img src="/icons/hype.png" alt="HYPE" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>HYPE-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="TRUMP-USDT-SWAP">
+                                            <img src="/icons/trump.png" alt="TRUMP" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>TRUMP-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="TAO-USDT-SWAP">
+                                            <img src="/icons/tao.png" alt="TAO" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>TAO-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="ORDI-USDT-SWAP">
+                                            <img src="/icons/ordi.png" alt="ORDI" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>ORDI-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="AAVE-USDT-SWAP">
+                                            <img src="/icons/aave.png" alt="AAVE" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>AAVE-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="INJ-USDT-SWAP">
+                                            <img src="/icons/inj.png" alt="INJ" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>INJ-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="AR-USDT-SWAP">
+                                            <img src="/icons/ar.png" alt="AR" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>AR-USDT-SWAP (Arweave)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="FIL-USDT-SWAP">
+                                            <img src="/icons/fil.png" alt="FIL" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>FIL-USDT-SWAP (Filecoin)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="LTC-USDT-SWAP">
+                                            <img src="/icons/ltc.png" alt="LTC" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>LTC-USDT-SWAP (莱特币)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="BCH-USDT-SWAP">
+                                            <img src="/icons/bch.png" alt="BCH" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>BCH-USDT-SWAP (比特币现金)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="OKB-USDT-SWAP">
+                                            <img src="/icons/okb.png" alt="OKB" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>OKB-USDT-SWAP (OKX平台币)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="ZEC-USDT-SWAP">
+                                            <img src="/icons/zec.png" alt="ZEC" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>ZEC-USDT-SWAP (Zcash)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="ICP-USDT-SWAP">
+                                            <img src="/icons/icp.png" alt="ICP" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>ICP-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="YFI-USDT-SWAP">
+                                            <img src="/icons/yfi.png" alt="YFI" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>YFI-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="XAUT-USDT-SWAP">
+                                            <img src="/icons/xaut.png" alt="XAUT" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>XAUT-USDT-SWAP (黄金代币)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="GIGGLE-USDT-SWAP">
+                                            <img src="/icons/giggle.png" alt="GIGGLE" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>GIGGLE-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="DASH-USDT-SWAP">
+                                            <img src="/icons/dash.png" alt="DASH" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>DASH-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="KSM-USDT-SWAP">
+                                            <img src="/icons/ksm.png" alt="KSM" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>KSM-USDT-SWAP (Kusama)</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="0G-USDT-SWAP">
+                                            <img src="/icons/0g.png" alt="0G" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>0G-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="COAI-USDT-SWAP">
+                                            <img src="/icons/coai.png" alt="COAI" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>COAI-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="ZEN-USDT-SWAP">
+                                            <img src="/icons/zen.png" alt="ZEN" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>ZEN-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="TRB-USDT-SWAP">
+                                            <img src="/icons/trb.png" alt="TRB" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>TRB-USDT-SWAP</span>
+                                        </div>
+                                        <div class="custom-select-option" data-value="MERL-USDT-SWAP">
+                                            <img src="/icons/merl.png" alt="MERL" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%2210%22 fill=%22%234b5563%22/%3E%3C/svg%3E'">
+                                            <span>MERL-USDT-SWAP</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Hidden input for form submission -->
+                                <input type="hidden" id="cfgInstId" value="BTC-USDT-SWAP">
+                                <p class="text-xs text-gray-500 mt-1">选择要交易的合约产品</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">杠杆倍数</label>
+                                <input type="number" id="cfgLeverage" value="20" min="1" max="125" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <p class="text-xs text-gray-500 mt-1">合约交易的杠杆倍数 (1-125倍)</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">AI决策间隔时间(分钟)</label>
+                                <input type="number" id="cfgDecisionInterval" value="5" min="1" max="1440" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <p class="text-xs text-gray-500 mt-1">AI进行交易决策的时间间隔</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Prompt Editor -->
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+                    <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            系统Prompt管理
+                        </h2>
+                        <button onclick="showAddPromptModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 text-sm font-medium">
+                            + 新增Prompt
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                            <p class="text-blue-400 text-sm">
+                                <strong>💡 提示:</strong> 管理AI交易决策的系统提示词。可以创建多个Prompt模板，选择其中一个应用到当前交易中。
+                            </p>
+                        </div>
+
+                        <!-- Current Active Prompt -->
+                        <div class="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-400 text-sm font-medium mb-1">当前使用的Prompt:</p>
+                                    <p class="text-white" id="currentPromptName">加载中...</p>
+                                </div>
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Prompts List -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-700">
+                                        <th class="text-left py-3 px-4 text-gray-400 font-medium">名称</th>
+                                        <th class="text-left py-3 px-4 text-gray-400 font-medium">描述</th>
+                                        <th class="text-left py-3 px-4 text-gray-400 font-medium">状态</th>
+                                        <th class="text-left py-3 px-4 text-gray-400 font-medium">更新时间</th>
+                                        <th class="text-right py-3 px-4 text-gray-400 font-medium">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="promptsTable">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-8 text-gray-500">加载中...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                            <p class="text-yellow-400 text-sm">
+                                <strong>⚠️ 注意:</strong> 修改或切换Prompt后需要重启交易机器人才能生效。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collector Config Tab -->
+            <div id="content-collector-config" class="tab-content hidden">
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+                    <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                            </svg>
+                            数据采集器配置
+                        </h2>
+                        <button onclick="saveCollectorConfig()" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 text-sm font-medium">
+                            保存配置
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                            <p class="text-blue-400 text-sm">
+                                <strong>💡 提示:</strong> 数据采集器负责实时收集K线、订单簿等市场数据。建议先启动数据采集器，再启动交易机器人。修改配置后需要重启采集器才能生效。
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <!-- Status Display -->
+                            <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                                <h3 class="text-white font-semibold mb-4">运行状态</h3>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">状态:</span>
+                                        <span id="collectorDetailStatus" class="text-gray-300">--</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">PID:</span>
+                                        <span id="collectorDetailPid" class="text-white font-mono">--</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">运行时长:</span>
+                                        <span id="collectorDetailUptime" class="text-white">--</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">CPU使用率:</span>
+                                        <span id="collectorDetailCpu" class="text-white">--</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">内存使用:</span>
+                                        <span id="collectorDetailMemory" class="text-white">--</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Configuration Form -->
+                            <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                                <h3 class="text-white font-semibold mb-4">采集配置</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">采集交易对</label>
+                                        <input type="text" id="cfgCollectorSymbols" placeholder="BTC-USDT-SWAP,ETH-USDT-SWAP" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <p class="text-xs text-gray-500 mt-1">多个交易对用逗号分隔</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">K线周期</label>
+                                        <input type="text" id="cfgCollectorTimeframes" placeholder="1m,5m,15m,30m,1H,4H" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <p class="text-xs text-gray-500 mt-1">多个周期用逗号分隔</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">历史数据(天)</label>
+                                        <input type="number" id="cfgCollectorHistoryDays" min="1" max="90" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">状态报告间隔(秒)</label>
+                                        <input type="number" id="cfgCollectorStatusInterval" min="5" max="300" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-1">数据超时(秒)</label>
+                                        <input type="number" id="cfgCollectorDataTimeout" min="60" max="600" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                            <p class="text-yellow-400 text-sm">
+                                <strong>⚠️ 注意:</strong> 修改采集器配置需要重启采集器才能生效。建议在市场平稳时进行配置修改。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MySQL Config Tab -->
+            <div id="content-mysql-config" class="tab-content hidden">
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+                    <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                            </svg>
+                            MySQL数据库配置
+                        </h2>
+                        <button onclick="saveMySQLConfig()" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 text-sm font-medium">
+                            保存配置
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                            <p class="text-blue-400 text-sm">
+                                <strong>💡 提示:</strong> MySQL数据库用于存储交易数据、AI决策记录和历史账单。请确保MySQL服务已启动并可连接。
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">数据库主机</label>
+                                <input type="text" id="cfgMysqlHost" placeholder="localhost" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <p class="text-xs text-gray-500 mt-1">MySQL服务器地址，本地使用localhost</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">端口</label>
+                                <input type="number" id="cfgMysqlPort" placeholder="3306" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <p class="text-xs text-gray-500 mt-1">MySQL服务端口，默认3306</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">用户名</label>
+                                <input type="text" id="cfgMysqlUser" placeholder="root" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <p class="text-xs text-gray-500 mt-1">数据库登录用户名</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">密码</label>
+                                <input type="password" id="cfgMysqlPassword" placeholder="输入数据库密码" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <p class="text-xs text-gray-500 mt-1">数据库登录密码</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">数据库名称</label>
+                                <input type="text" id="cfgMysqlDatabase" placeholder="trading_data" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <p class="text-xs text-gray-500 mt-1">使用的数据库名称，系统会自动创建</p>
+                            </div>
+
+                            <div class="flex items-end">
+                                <button onclick="testMySQLConnection()" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 text-sm font-medium">
+                                    测试连接
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                            <p class="text-yellow-400 text-sm">
+                                <strong>⚠️ 注意:</strong> 修改MySQL配置需要重启交易机器人和数据采集器才能生效。请确保配置正确后再保存。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feishu Bot Config Tab -->
+            <div id="content-feishu-config" class="tab-content hidden">
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+                    <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            飞书机器人配置
+                        </h2>
+                        <button onclick="saveFeishuConfig()" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 text-sm font-medium">
+                            保存配置
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <!-- 使用说明 -->
+                        <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                            <h3 class="text-blue-400 font-semibold mb-3 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                配置指南
+                            </h3>
+                            <div class="text-sm text-gray-300 space-y-3">
+                                <p class="text-blue-300 font-medium">📝 如何创建飞书机器人指令：</p>
+                                <ol class="space-y-2 ml-4">
+                                    <li>1. 访问飞书机器人平台：<a href="https://botbuilder.feishu.cn/home/my-command/" target="_blank" class="text-blue-400 hover:text-blue-300 underline">https://botbuilder.feishu.cn/home/my-command/</a></li>
+                                    <li>2. 点击【新建指令】按钮</li>
+                                    <li>3. 选择【触发器】→【Webhook触发】</li>
+                                    <li>4. 在参数中输入以下JSON格式：
+                                        <pre class="bg-gray-900 p-3 rounded mt-2 overflow-x-auto"><code class="text-green-400">{
+  "msg_type": "text",
+  "content": {
+    "text": "content",
+    "signal": "signal",
+    "inst_id": "inst_id"
+  }
+}</code></pre>
+                                    </li>
+                                    <li>5. 选择【操作】→【通过官方机器人发消息】</li>
+                                    <li>6. 配置消息模板：
+                                        <div class="bg-gray-900 p-3 rounded mt-2">
+                                            <p class="text-yellow-400">消息标题：</p>
+                                            <code class="text-white">点击+号添加变量 -> Webhook 触发 -> content.signal （ Webhook 触发.content.inst_id ）</code>
+                                            <p class="text-yellow-400 mt-2">消息内容：</p>
+                                            <code class="text-white">点击+号添加变量 -> Webhook 触发 -> content.text </code>
+                                        </div>
+                                    </li>
+                                    <li>7. 复制生成的【Webhook地址】</li>
+                                    <li>8. 将Webhook地址粘贴到下方的配置框中并保存</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- 配置表单 -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="flex items-center space-x-2 mb-3">
+                                    <input type="checkbox" id="feishuEnabled" class="w-4 h-4 bg-gray-700 border-gray-600 rounded focus:ring-2 focus:ring-blue-500">
+                                    <span class="text-sm text-gray-300 font-medium">启用飞书机器人通知</span>
+                                </label>
+                            </div>
+
+                            <div id="feishuSettings">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Webhook地址 *</label>
+                                    <input type="url" id="feishuWebhookUrl" placeholder="https://botbuilder.feishu.cn/..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <p class="text-xs text-gray-500 mt-1">从飞书机器人平台复制的Webhook地址</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 测试按钮 -->
+                        <div class="mt-6 flex space-x-3">
+                            <button onclick="testFeishuWebhook()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-200 text-sm font-medium">
+                                发送测试消息
+                            </button>
+                        </div>
+
+                        <!-- 注意事项 -->
+                        <div class="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                            <p class="text-yellow-400 text-sm">
+                                <strong>⚠️ 注意:</strong>
+                            </p>
+                            <ul class="text-yellow-300 text-sm mt-2 ml-4 space-y-1">
+                                <li>• 请确保Webhook地址正确且有效</li>
+                                <li>• 飞书机器人需要在对应的群组或对话中添加</li>
+                                <li>• 建议先发送测试消息验证配置是否正确</li>
+                                <li>• 修改配置后需要重启交易机器人才能生效</li>
+                            </ul>
+                        </div>
+
+                        <!-- 示例图片区域 -->
+                        <div class="mt-6 bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                            <h3 class="text-white font-semibold mb-3">📸 配置示例</h3>
+                            <p class="text-sm text-gray-400 mb-3">飞书机器人配置界面参考（点击查看大图）：</p>
+                            <div class="bg-gray-900 rounded p-3">
+                                <img src="/static/飞书配置参考.png" alt="飞书机器人配置示例"
+                                     class="w-full max-w-md mx-auto rounded border border-gray-700 cursor-pointer hover:opacity-80 transition-opacity"
+                                     onclick="showImageModal('/static/飞书配置参考.png')"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <div style="display:none;" class="text-center py-4">
+                                    <p class="text-gray-500 text-sm">配置参考图片加载失败</p>
+                                    <div class="mt-2 text-xs text-gray-600">
+                                        触发器：Webhook触发 → 操作：通过官方机器人发消息
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-xs text-gray-400 space-y-1">
+                                <p>• <strong>消息标题：</strong>AI量化交易【<span class="text-blue-400">Webhook 触发.content.signal</span>】（<span class="text-blue-400">Webhook 触发.content.inst_id</span>）</p>
+                                <p>• <strong>消息内容：</strong><span class="text-blue-400">Webhook 触发.content.text</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="content-logs" class="tab-content hidden">
+                <div class="mb-4 flex items-center justify-between flex-wrap gap-2">
+                    <h2 class="text-lg font-semibold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        运行日志
+                    </h2>
+                    <div class="flex items-center space-x-2 flex-wrap gap-2">
+                        <select id="logSourceFilter" onchange="loadLogs()" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="bot">交易机器人</option>
+                            <option value="collector">数据采集器</option>
+                        </select>
+                        <select id="logLevelFilter" onchange="loadLogs()" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部级别</option>
+                            <option value="SUCCESS">SUCCESS</option>
+                            <option value="INFO">INFO</option>
+                            <option value="WARNING">WARNING</option>
+                            <option value="ERROR">ERROR</option>
+                            <option value="DEBUG">DEBUG</option>
+                        </select>
+                        <select id="logLinesFilter" onchange="loadLogs()" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="50">最近50行</option>
+                            <option value="100" selected>最近100行</option>
+                            <option value="200">最近200行</option>
+                            <option value="500">最近500行</option>
+                            <option value="1000">最近1000行</option>
+                        </select>
+                        <button onclick="clearLogs()" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition duration-200 text-sm font-medium">
+                            清空
+                        </button>
+                        <span class="flex items-center space-x-2 text-green-400 text-sm">
+                            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                            <span>实时更新中</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="terminal-window">
+                    <div class="terminal-body" id="logsContainer">
+                        <div class="log-line">
+                            <span class="log-timestamp">[--:--:--]</span>
+                            <span class="log-level-INFO">[INFO]</span>
+                            <span class="log-message">等待加载日志...</span>
+                            <span class="terminal-cursor"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Tab -->
+            <div id="content-help" class="tab-content hidden">
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+                    <div class="px-6 py-4 border-b border-gray-700">
+                        <h2 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            使用帮助
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-6">
+                            <!-- Quick Start -->
+                            <div class="bg-blue-900/20 rounded-lg p-4 border border-blue-700/50">
+                                <h3 class="text-blue-400 font-semibold mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                    快速开始
+                                </h3>
+                                <ol class="text-sm text-gray-300 space-y-2 ml-4">
+                                    <li>1. 在「OKX账户」页面添加您的API账户并验证</li>
+                                    <li>2. 在「AI配置」页面配置AI模型（豆包/DeepSeek/通义千问）</li>
+                                    <li>3. 在「交易配置」页面设置交易参数和风控规则</li>
+                                    <li>4. 在「仪表盘」启动数据采集器，等待数据采集完成</li>
+                                    <li>5. 在「仪表盘」启动交易机器人，开始自动化交易</li>
+                                </ol>
+                            </div>
+
+                            <!-- Features -->
+                            <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                                <h3 class="text-white font-semibold mb-3">主要功能</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+                                    <div>
+                                        <h4 class="text-blue-400 font-medium mb-2">仪表盘</h4>
+                                        <ul class="space-y-1 ml-4">
+                                            <li>• 服务状态监控</li>
+                                            <li>• 一键启动/停止服务</li>
+                                            <li>• 批量操作控制</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-blue-400 font-medium mb-2">OKX账户</h4>
+                                        <ul class="space-y-1 ml-4">
+                                            <li>• 多账户管理</li>
+                                            <li>• API自动验证</li>
+                                            <li>• 快速切换账户</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-blue-400 font-medium mb-2">AI配置</h4>
+                                        <ul class="space-y-1 ml-4">
+                                            <li>• 多AI提供商支持</li>
+                                            <li>• 灵活模型选择</li>
+                                            <li>• 超时时间配置</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-blue-400 font-medium mb-2">交易配置</h4>
+                                        <ul class="space-y-1 ml-4">
+                                            <li>• 杠杆与仓位控制</li>
+                                            <li>• 风控参数设置</li>
+                                            <li>• 系统Prompt编辑</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ -->
+                            <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+                                <h3 class="text-white font-semibold mb-3">常见问题</h3>
+                                <div class="space-y-3 text-sm">
+                                    <div>
+                                        <h4 class="text-yellow-400 font-medium mb-1">Q: 为什么交易机器人启动失败？</h4>
+                                        <p class="text-gray-300">A: 请检查：1) API配置是否正确 2) AI模型是否配置 3) 数据采集器是否已启动并有数据</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-yellow-400 font-medium mb-1">Q: 如何查看交易日志？</h4>
+                                        <p class="text-gray-300">A: 在「查看日志」页面可以查看策略执行日志，也可以跳转到「数据分析」页面查看AI分析记录</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-yellow-400 font-medium mb-1">Q: 修改配置后需要重启吗？</h4>
+                                        <p class="text-gray-300">A: 是的，修改AI配置、交易配置、系统Prompt后，需要重启交易机器人才能生效</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-yellow-400 font-medium mb-1">Q: 数据采集器的作用是什么？</h4>
+                                        <p class="text-gray-300">A: 数据采集器负责实时收集市场数据（K线、订单簿、逐笔成交），为AI分析提供数据基础</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact -->
+                            <div class="bg-purple-900/20 rounded-lg p-4 border border-purple-700/50">
+                                <h3 class="text-purple-400 font-semibold mb-3">技术支持</h3>
+                                <p class="text-sm text-gray-300">
+                                    如需技术支持或反馈问题，请访问项目GitHub仓库或联系开发团队。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 border-t border-gray-700 mt-8">
+            <div class="container mx-auto px-4 py-4">
+                <div class="text-center text-gray-400 text-sm">
+                    <p>DesicAi系统管理控制台 v2.0 | AI驱动的智能交易决策</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Add Account Modal -->
+    <div id="addAccountModal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop bg-black bg-opacity-50">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-gray-800 rounded-lg shadow-xl border border-gray-700 max-w-md w-full modal-content">
+                <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white">添加OKX账户</h3>
+                    <button onclick="closeAddAccountModal()" class="text-gray-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">账户名称 *</label>
+                            <input type="text" id="accountName" placeholder="如: 主账户" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">API Key *</label>
+                            <input type="text" id="accountApiKey" placeholder="输入API Key" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Secret Key *</label>
+                            <input type="password" id="accountSecretKey" placeholder="输入Secret Key" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Passphrase *</label>
+                            <input type="password" id="accountPassphrase" placeholder="输入Passphrase" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="accountIsDemo" class="w-4 h-4 bg-gray-700 border-gray-600 rounded focus:ring-2 focus:ring-blue-500">
+                                <span class="text-sm text-gray-400">使用模拟交易</span>
+                            </label>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-700 flex justify-end space-x-3">
+                    <button onclick="closeAddAccountModal()" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition duration-200 text-sm">
+                        取消
+                    </button>
+                    <button onclick="saveAccount()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 text-sm font-medium">
+                        保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Modal -->
+    <div id="promptModal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop bg-black bg-opacity-50">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-gray-800 rounded-lg shadow-xl border border-gray-700 max-w-4xl w-full modal-content">
+                <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white" id="promptModalTitle">查看Prompt</h3>
+                    <button onclick="closePromptModal()" class="text-gray-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">名称 *</label>
+                            <input type="text" id="promptName" placeholder="如: 激进策略" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">描述 (可选)</label>
+                            <input type="text" id="promptDescription" placeholder="简要描述此Prompt的用途" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Prompt内容 *</label>
+                            <!-- Edit/Add mode: textarea -->
+                            <textarea id="promptContent" rows="15" placeholder="输入系统提示词..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 scrollbar-hide"></textarea>
+                            <!-- View mode: rendered markdown -->
+                            <div id="promptContentRendered" class="hidden w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-gray-200 prose prose-invert prose-sm max-w-none overflow-y-auto" style="max-height: 500px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-700 flex justify-end space-x-3">
+                    <button onclick="closePromptModal()" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition duration-200 text-sm">
+                        取消
+                    </button>
+                    <button onclick="savePrompt()" id="btnSavePrompt" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 text-sm font-medium">
+                        保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Proxy Config Modal -->
+    <div id="proxyConfigModal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop bg-black bg-opacity-50">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-gray-800 rounded-lg shadow-xl border border-gray-700 max-w-md w-full modal-content">
+                <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                        </svg>
+                        代理配置
+                    </h3>
+                    <button onclick="closeProxyConfigModal()" class="text-gray-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div class="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                            <p class="text-blue-400 text-xs">
+                                <strong>💡 提示:</strong> 如果无法访问OKX，请配置代理。支持HTTP/HTTPS/SOCKS5代理。
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="flex items-center space-x-2 mb-3">
+                                <input type="checkbox" id="proxyEnabled" class="w-4 h-4 bg-gray-700 border-gray-600 rounded focus:ring-2 focus:ring-blue-500">
+                                <span class="text-sm text-gray-300">启用代理</span>
+                            </label>
+                        </div>
+
+                        <div id="proxySettings" class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">代理类型</label>
+                                <select id="proxyType" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="http">HTTP</option>
+                                    <option value="https">HTTPS</option>
+                                    <option value="socks5">SOCKS5</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">代理地址</label>
+                                <input type="text" id="proxyHost" placeholder="127.0.0.1" value="127.0.0.1" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">代理端口</label>
+                                <input type="number" id="proxyPort" placeholder="7890" value="7890" min="1" max="65535" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">用户名 (可选)</label>
+                                <input type="text" id="proxyUsername" placeholder="留空表示无需认证" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">密码 (可选)</label>
+                                <input type="password" id="proxyPassword" placeholder="留空表示无需认证" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                            <p class="text-yellow-400 text-xs">
+                                <strong>⚠️ 注意:</strong> 修改代理配置后，需要重启相关服务才能生效。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-700 flex justify-between space-x-3">
+                    <button onclick="testProxyConnection()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition duration-200 text-sm font-medium">
+                        测试连接
+                    </button>
+                    <div class="flex space-x-3">
+                        <button onclick="closeProxyConfigModal()" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition duration-200 text-sm">
+                            取消
+                        </button>
+                        <button onclick="saveProxyConfig()" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 text-sm font-medium">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop bg-black bg-opacity-75" onclick="closeImageModal()">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="relative max-w-6xl w-full" onclick="event.stopPropagation()">
+                <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                <img id="modalImage" src="" alt="查看大图" class="w-full h-auto rounded-lg shadow-2xl">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentTab = 'dashboard';
+        let currentEditingAccount = null;
+        let logsAutoRefreshInterval = null;
+        let currentEditingPrompt = null;
+        let promptEditMode = 'add'; // 'add', 'edit', 'view'
+
+        // ========== Notification and Loading System ==========
+        let notificationTimeout = null;
+
+        /**
+         * Show notification toast
+         * @param {string} message - The message to display
+         * @param {string} type - Type: 'success', 'error', 'warning', 'info'
+         * @param {number} duration - Duration in ms (default: 3000)
+         */
+        function showNotification(message, type = 'info', duration = 3000) {
+            const toast = document.getElementById('notificationToast');
+            const icon = document.getElementById('notificationIcon');
+            const content = document.getElementById('notificationContent');
+
+            // Clear existing timeout
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+            }
+
+            // Set icon based on type
+            const icons = {
+                success: `<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`,
+                error: `<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>`,
+                warning: `<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>`,
+                info: `<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>`
+            };
+
+            // Update toast content
+            icon.innerHTML = icons[type] || icons.info;
+            content.textContent = message;
+
+            // Update toast class
+            toast.className = `notification-toast ${type}`;
+
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            // Auto hide after duration
+            notificationTimeout = setTimeout(() => hideNotification(), duration);
+        }
+
+        /**
+         * Hide notification toast
+         */
+        function hideNotification() {
+            const toast = document.getElementById('notificationToast');
+            toast.classList.remove('show');
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+                notificationTimeout = null;
+            }
+        }
+
+        /**
+         * Show loading overlay
+         * @param {string} message - Loading message (default: '加载中...')
+         */
+        function showLoading(message = '加载中...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const text = document.getElementById('loadingText');
+            text.textContent = message;
+            overlay.classList.add('show');
+        }
+
+        /**
+         * Hide loading overlay
+         */
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('show');
+        }
+
+        // ========== End Notification and Loading System ==========
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadConfig();
+            await refreshDashboard();
+            await loadAccounts();
+            await loadStrategyLogs();
+            await checkEnvironment();
+
+            // Initialize custom select
+            initCustomSelect();
+
+            // Auto refresh every 5 seconds
+            setInterval(refreshDashboard, 5000);
+            // Check environment every 30 seconds
+            setInterval(checkEnvironment, 30000);
+            setInterval(updateTime, 1000);
+        });
+
+        // Custom Select Handler
+        function initCustomSelect() {
+            const customSelect = document.getElementById('customInstIdSelect');
+            if (!customSelect) return;
+
+            const trigger = customSelect.querySelector('.custom-select-trigger');
+            const options = customSelect.querySelectorAll('.custom-select-option');
+            const hiddenInput = document.getElementById('cfgInstId');
+
+            // Toggle dropdown
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                customSelect.classList.toggle('active');
+            });
+
+            // Select option
+            options.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+
+                    // Remove previous selection
+                    options.forEach(opt => opt.classList.remove('selected'));
+
+                    // Add selection to clicked option
+                    option.classList.add('selected');
+
+                    // Get value and icon
+                    const value = option.getAttribute('data-value');
+                    const img = option.querySelector('img').cloneNode(true);
+                    const text = option.querySelector('span').textContent;
+
+                    // Update trigger
+                    trigger.querySelector('img').src = img.src;
+                    trigger.querySelector('span').textContent = value;
+
+                    // Update hidden input
+                    hiddenInput.value = value;
+
+                    // Close dropdown
+                    customSelect.classList.remove('active');
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', () => {
+                customSelect.classList.remove('active');
+            });
+
+            // Keyboard navigation
+            trigger.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    customSelect.classList.toggle('active');
+                }
+            });
+        }
+
+        // Update custom select value
+        function updateCustomSelect(value) {
+            const customSelect = document.getElementById('customInstIdSelect');
+            if (!customSelect) return;
+
+            const trigger = customSelect.querySelector('.custom-select-trigger');
+            const options = customSelect.querySelectorAll('.custom-select-option');
+            const hiddenInput = document.getElementById('cfgInstId');
+
+            // Find matching option
+            let matchedOption = null;
+            options.forEach(option => {
+                if (option.getAttribute('data-value') === value) {
+                    matchedOption = option;
+                }
+            });
+
+            if (matchedOption) {
+                // Remove previous selection
+                options.forEach(opt => opt.classList.remove('selected'));
+
+                // Add selection to matched option
+                matchedOption.classList.add('selected');
+
+                // Get icon and text
+                const img = matchedOption.querySelector('img').cloneNode(true);
+
+                // Update trigger
+                trigger.querySelector('img').src = img.src;
+                trigger.querySelector('span').textContent = value;
+
+                // Update hidden input
+                hiddenInput.value = value;
+            }
+        }
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('zh-CN');
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                if (btn.id === `tab-${tab}`) {
+                    btn.className = 'px-4 py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-500 whitespace-nowrap';
+                } else {
+                    btn.className = 'px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap';
+                }
+            });
+
+            // Update content
+            document.querySelectorAll('[id^="content-"]').forEach(content => {
+                if (content.id === `content-${tab}`) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+
+            // 离开日志标签页时停止自动刷新
+            if (currentTab === 'logs' && tab !== 'logs') {
+                stopLogsAutoRefresh();
+            }
+
+            currentTab = tab;
+
+            // Load tab-specific data
+            if (tab === 'collector-config') {
+                refreshCollectorDetails();
+                loadCollectorConfig();
+            } else if (tab === 'trade-config') {
+                loadPrompts();
+            } else if (tab === 'logs') {
+                startLogsAutoRefresh(); // 切换到日志页面时自动开始刷新
+            }
+        }
+
+        // 启动日志自动刷新
+        function startLogsAutoRefresh() {
+            // 停止现有的定时器（如果有）
+            stopLogsAutoRefresh();
+
+            // 立即加载一次
+            loadLogs();
+
+            // 每2秒刷新一次
+            logsAutoRefreshInterval = setInterval(loadLogs, 10000);
+        }
+
+        // 停止日志自动刷新
+        function stopLogsAutoRefresh() {
+            if (logsAutoRefreshInterval) {
+                clearInterval(logsAutoRefreshInterval);
+                logsAutoRefreshInterval = null;
+            }
+        }
+
+        // Dashboard functions
+        async function refreshDashboard() {
+            await Promise.all([
+                loadBotStatus(),
+                loadCollectorStatus()
+            ]);
+        }
+
+        // Environment Check
+        async function checkEnvironment() {
+            try {
+                // 首先检查.env文件是否存在，不存在则自动创建
+                const envInitRes = await fetch('/api/environment/init_env');
+                const envInitData = await envInitRes.json();
+
+                const envFileEl = document.getElementById('envFile');
+                if (envInitData.success) {
+                    if (envInitData.data.created) {
+                        // 刚创建了.env文件
+                        envFileEl.innerHTML = '<span class="text-yellow-400">⚠ 已创建</span>';
+                        envFileEl.parentElement.parentElement.classList.add('cursor-pointer', 'hover:bg-gray-700/50');
+                        envFileEl.parentElement.parentElement.title = '已从模板创建，请配置后重启';
+                    } else {
+                        // .env文件已存在
+                        envFileEl.innerHTML = '<span class="text-green-400">✓ 存在</span>';
+                    }
+                } else {
+                    envFileEl.innerHTML = '<span class="text-red-400">✗ 错误</span>';
+                }
+
+                // 然后检查配置状态
+                const configRes = await fetch('/api/config');
+                const configData = await configRes.json();
+
+                if (configData.success) {
+                    // OKX API配置检测
+                    const okxApiEl = document.getElementById('envOkxApi');
+                    if (configData.data.api_configured) {
+                        okxApiEl.innerHTML = '<span class="text-green-400">✓ 已配置</span>';
+                    } else {
+                        okxApiEl.innerHTML = '<span class="text-yellow-400">⚠ 未配置</span>';
+                        okxApiEl.parentElement.parentElement.classList.add('cursor-pointer', 'hover:bg-gray-700/50');
+                        okxApiEl.parentElement.parentElement.onclick = () => switchTab('accounts');
+                        okxApiEl.parentElement.parentElement.title = '点击前往配置';
+                    }
+
+                    // AI配置检测
+                    const aiEl = document.getElementById('envAi');
+                    if (configData.data.ai_configured) {
+                        const provider = configData.data.ai_provider || 'unknown';
+                        aiEl.innerHTML = `<span class="text-green-400">✓ ${provider}</span>`;
+                    } else {
+                        aiEl.innerHTML = '<span class="text-yellow-400">⚠ 未配置</span>';
+                        aiEl.parentElement.parentElement.classList.add('cursor-pointer', 'hover:bg-gray-700/50');
+                        aiEl.parentElement.parentElement.onclick = () => switchTab('ai-config');
+                        aiEl.parentElement.parentElement.title = '点击前往配置';
+                    }
+
+                    // 数据采集器配置检测
+                    const collectorEl = document.getElementById('envCollector');
+                    const hasCollectorConfig = configData.data.collector_symbols &&
+                                              configData.data.collector_timeframes;
+                    if (hasCollectorConfig) {
+                        collectorEl.innerHTML = '<span class="text-green-400">✓ 已配置</span>';
+                    } else {
+                        collectorEl.innerHTML = '<span class="text-yellow-400">⚠ 未配置</span>';
+                        collectorEl.parentElement.parentElement.classList.add('cursor-pointer', 'hover:bg-gray-700/50');
+                        collectorEl.parentElement.parentElement.onclick = () => switchTab('collector-config');
+                        collectorEl.parentElement.parentElement.title = '点击前往配置';
+                    }
+
+                    // 系统Prompt检测
+                    const promptEl = document.getElementById('envPrompt');
+                    if (configData.data.active_prompt) {
+                        promptEl.innerHTML = '<span class="text-green-400">✓ 已设置</span>';
+                    } else {
+                        promptEl.innerHTML = '<span class="text-yellow-400">⚠ 未设置</span>';
+                        promptEl.parentElement.parentElement.classList.add('cursor-pointer', 'hover:bg-gray-700/50');
+                        promptEl.parentElement.parentElement.onclick = () => switchTab('trade-config');
+                        promptEl.parentElement.parentElement.title = '点击前往设置';
+                    }
+                }
+
+                // 最后检查网络环境
+                const envRes = await fetch('/api/environment/check');
+                const data = await envRes.json();
+
+                if (data.success) {
+                    // OKX网络连接
+                    const okxEl = document.getElementById('envOkx');
+                    if (data.data.okx_accessible) {
+                        okxEl.innerHTML = '<span class="text-green-400">✓ 可访问</span>';
+                    } else {
+                        okxEl.innerHTML = '<span class="text-red-400">✗ 不可达</span>';
+                        okxEl.parentElement.parentElement.classList.add('cursor-pointer', 'hover:bg-gray-700/50');
+                        okxEl.parentElement.parentElement.onclick = showProxyConfigModal;
+                        okxEl.parentElement.parentElement.title = '点击配置代理';
+                    }
+                }
+            } catch (error) {
+                console.error('环境检测失败:', error);
+                // 设置所有检测项为错误状态
+                ['envFile', 'envOkxApi', 'envAi', 'envCollector', 'envOkx', 'envPrompt'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = '<span class="text-red-400">✗ 错误</span>';
+                });
+            }
+        }
+
+        // Proxy Configuration
+        function showProxyConfigModal() {
+            document.getElementById('proxyConfigModal').classList.remove('hidden');
+            loadProxyConfig();
+        }
+
+        function closeProxyConfigModal() {
+            document.getElementById('proxyConfigModal').classList.add('hidden');
+        }
+
+        // Image Modal Functions
+        function showImageModal(imageSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            modalImage.src = imageSrc;
+            modal.classList.remove('hidden');
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.add('hidden');
+        }
+
+        async function loadProxyConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const data = await res.json();
+
+                if (data.success && data.data.proxy) {
+                    const proxy = data.data.proxy;
+                    document.getElementById('proxyEnabled').checked = proxy.enabled || false;
+                    document.getElementById('proxyType').value = proxy.type || 'http';
+                    document.getElementById('proxyHost').value = proxy.host || '127.0.0.1';
+                    document.getElementById('proxyPort').value = proxy.port || 7890;
+                    document.getElementById('proxyUsername').value = proxy.username || '';
+                    document.getElementById('proxyPassword').value = proxy.password || '';
+                }
+            } catch (error) {
+                console.error('加载代理配置失败:', error);
+            }
+        }
+
+        async function saveProxyConfig() {
+            const config = {
+                proxy: {
+                    enabled: document.getElementById('proxyEnabled').checked,
+                    type: document.getElementById('proxyType').value,
+                    host: document.getElementById('proxyHost').value,
+                    port: parseInt(document.getElementById('proxyPort').value),
+                    username: document.getElementById('proxyUsername').value,
+                    password: document.getElementById('proxyPassword').value
+                }
+            };
+
+            try {
+                showLoading('正在保存代理配置...');
+                const res = await fetch('/api/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification('代理配置已保存，请重启相关服务使配置生效', 'success');
+                    closeProxyConfigModal();
+                    // 重新检测环境
+                    await checkEnvironment();
+                } else {
+                    showNotification(`保存失败: ${data.detail || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testProxyConnection() {
+            const proxyConfig = {
+                enabled: document.getElementById('proxyEnabled').checked,
+                type: document.getElementById('proxyType').value,
+                host: document.getElementById('proxyHost').value,
+                port: parseInt(document.getElementById('proxyPort').value),
+                username: document.getElementById('proxyUsername').value,
+                password: document.getElementById('proxyPassword').value
+            };
+
+            if (!proxyConfig.enabled) {
+                showNotification('请先启用代理', 'warning');
+                return;
+            }
+
+            try {
+                showLoading('正在测试代理连接...');
+                const res = await fetch('/api/environment/test_proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ proxy: proxyConfig })
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(`代理连接测试成功！响应时间: ${data.data.response_time}ms`, 'success');
+                } else {
+                    showNotification(`代理连接测试失败: ${data.message || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadBotStatus() {
+            try {
+                const res = await fetch('/api/bot/status');
+                const data = await res.json();
+
+                const statusText = document.getElementById('botStatusText');
+                const status = document.getElementById('botStatus');
+                const pid = document.getElementById('botPid');
+                const btnStart = document.getElementById('btnStartBot');
+                const btnStop = document.getElementById('btnStopBot');
+
+                if (data.is_running) {
+                    statusText.textContent = '运行中';
+                    statusText.className = 'text-sm text-green-500';
+                    status.innerHTML = '<span class="text-green-400">● 运行中</span>';
+                    pid.textContent = data.pid || '--';
+                    btnStart.disabled = true;
+                    btnStop.disabled = false;
+                } else {
+                    statusText.textContent = '已停止';
+                    statusText.className = 'text-sm text-gray-500';
+                    status.innerHTML = '<span class="text-red-400">● 已停止</span>';
+                    pid.textContent = '--';
+                    btnStart.disabled = false;
+                    btnStop.disabled = true;
+                }
+            } catch (error) {
+                console.error('加载Bot状态失败:', error);
+            }
+        }
+
+        async function loadCollectorStatus() {
+            try {
+                const res = await fetch('/api/collector/status');
+                const data = await res.json();
+
+                const statusText = document.getElementById('collectorStatusText');
+                const pid = document.getElementById('collectorPid');
+                const uptime = document.getElementById('collectorUptime');
+                const btnStart = document.getElementById('btnStartCollector');
+                const btnStop = document.getElementById('btnStopCollector');
+
+                if (data.running) {
+                    statusText.textContent = '运行中';
+                    statusText.className = 'text-sm text-green-500';
+                    pid.textContent = data.pid || '--';
+                    uptime.textContent = data.uptime || '--';
+                    btnStart.disabled = true;
+                    btnStop.disabled = false;
+                } else {
+                    statusText.textContent = '已停止';
+                    statusText.className = 'text-sm text-gray-500';
+                    pid.textContent = '--';
+                    uptime.textContent = '--';
+                    btnStart.disabled = false;
+                    btnStop.disabled = true;
+                }
+            } catch (error) {
+                console.error('加载Collector状态失败:', error);
+            }
+        }
+
+        async function startBot() {
+            try {
+                showLoading('正在启动交易机器人...');
+                const res = await fetch('/api/bot/start', { method: 'POST' });
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.error, 'error');
+                }
+                await refreshDashboard();
+            } catch (error) {
+                hideLoading();
+                showNotification(`启动失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function stopBot() {
+            try {
+                showLoading('正在停止交易机器人...');
+                const res = await fetch('/api/bot/stop', { method: 'POST' });
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.error, 'error');
+                }
+                await refreshDashboard();
+            } catch (error) {
+                hideLoading();
+                showNotification(`停止失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function startCollector() {
+            try {
+                showLoading('正在启动数据采集器...');
+                const res = await fetch('/api/collector/start', { method: 'POST' });
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.error, 'error');
+                }
+                await refreshDashboard();
+            } catch (error) {
+                hideLoading();
+                showNotification(`启动失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function stopCollector() {
+            try {
+                showLoading('正在停止数据采集器...');
+                const res = await fetch('/api/collector/stop', { method: 'POST' });
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.error, 'error');
+                }
+                await refreshDashboard();
+            } catch (error) {
+                hideLoading();
+                showNotification(`停止失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function startAllServices() {
+            showLoading('正在启动所有服务...');
+            await startCollector();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            await startBot();
+            hideLoading();
+            showNotification('所有服务启动完成', 'success');
+        }
+
+        async function stopAllServices() {
+            if (!confirm('确定要停止所有服务吗？')) return;
+            showLoading('正在停止所有服务...');
+            await stopBot();
+            await stopCollector();
+            hideLoading();
+            showNotification('所有服务已停止', 'success');
+        }
+
+        // Load configuration
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const data = await res.json();
+                if (!data.success) return;
+
+                const cfg = data.data;
+
+                // AI Config
+                document.getElementById('cfgAiProvider').value = cfg.ai_provider || 'doubao';
+                document.getElementById('cfgDoubaoApiKey').value = cfg.doubao_api_key || '';
+                document.getElementById('cfgDoubaoEndpoint').value = cfg.doubao_endpoint_id || '';
+                document.getElementById('cfgDoubaoModel').value = cfg.doubao_model || 'doubao-seed-1-6-lite-251015';
+                document.getElementById('cfgDoubaoTimeout').value = cfg.doubao_timeout || 50;
+                document.getElementById('cfgDeepseekApiKey').value = cfg.deepseek_api_key || '';
+                document.getElementById('cfgDeepseekModel').value = cfg.deepseek_model || 'deepseek-chat';
+                document.getElementById('cfgDeepseekTimeout').value = cfg.deepseek_timeout || 20;
+                document.getElementById('cfgQwenApiKey').value = cfg.qwen_api_key || '';
+                document.getElementById('cfgQwenModel').value = cfg.qwen_model || 'qwen-max';
+                document.getElementById('cfgQwenTimeout').value = cfg.qwen_timeout || 20;
+
+                // Toggle AI provider config visibility
+                toggleAIProviderConfig();
+
+                // Trade Config
+                const instId = cfg.inst_id || 'BTC-USDT-SWAP';
+                document.getElementById('cfgLeverage').value = cfg.default_leverage || 20;
+                document.getElementById('cfgDecisionInterval').value = cfg.decision_interval_minutes || 5;
+
+                // Update custom select for inst_id
+                updateCustomSelect(instId);
+
+                // MySQL Config
+                document.getElementById('cfgMysqlHost').value = cfg.mysql_host || 'localhost';
+                document.getElementById('cfgMysqlPort').value = cfg.mysql_port || 3306;
+                document.getElementById('cfgMysqlUser').value = cfg.mysql_user || 'root';
+                document.getElementById('cfgMysqlPassword').value = cfg.mysql_password || '';
+                document.getElementById('cfgMysqlDatabase').value = cfg.mysql_database || 'trading_data';
+
+                // Feishu Config
+                document.getElementById('feishuEnabled').checked = cfg.feishu_enabled || false;
+                document.getElementById('feishuWebhookUrl').value = cfg.feishu_webhook_url || '';
+
+            } catch (error) {
+                console.error('加载配置失败:', error);
+            }
+        }
+
+        function toggleAIProviderConfig() {
+            const provider = document.getElementById('cfgAiProvider').value;
+
+            // Hide all provider configs
+            document.getElementById('doubaoConfig').classList.add('hidden');
+            document.getElementById('deepseekConfig').classList.add('hidden');
+            document.getElementById('qwenConfig').classList.add('hidden');
+
+            // Show selected provider config
+            if (provider === 'doubao') {
+                document.getElementById('doubaoConfig').classList.remove('hidden');
+            } else if (provider === 'deepseek') {
+                document.getElementById('deepseekConfig').classList.remove('hidden');
+            } else if (provider === 'qwen') {
+                document.getElementById('qwenConfig').classList.remove('hidden');
+            }
+        }
+
+        async function saveAIConfig() {
+            try {
+                const config = {
+                    ai_provider: document.getElementById('cfgAiProvider').value,
+                    doubao_api_key: document.getElementById('cfgDoubaoApiKey').value,
+                    doubao_endpoint_id: document.getElementById('cfgDoubaoEndpoint').value,
+                    doubao_model: document.getElementById('cfgDoubaoModel').value,
+                    doubao_timeout: parseInt(document.getElementById('cfgDoubaoTimeout').value),
+                    deepseek_api_key: document.getElementById('cfgDeepseekApiKey').value,
+                    deepseek_model: document.getElementById('cfgDeepseekModel').value,
+                    deepseek_timeout: parseInt(document.getElementById('cfgDeepseekTimeout').value),
+                    qwen_api_key: document.getElementById('cfgQwenApiKey').value,
+                    qwen_model: document.getElementById('cfgQwenModel').value,
+                    qwen_timeout: parseInt(document.getElementById('cfgQwenTimeout').value)
+                };
+
+                showLoading('正在保存AI配置...');
+                const res = await fetch('/api/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification('配置已保存，请重启交易机器人使配置生效', 'success');
+                } else {
+                    showNotification(`保存失败: ${data.detail}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function saveTradeConfig() {
+            try {
+                const config = {
+                    inst_id: document.getElementById('cfgInstId').value,
+                    default_leverage: parseInt(document.getElementById('cfgLeverage').value),
+                    // Note: decision_interval_minutes is a new field, backend support to be added
+                    decision_interval_minutes: parseInt(document.getElementById('cfgDecisionInterval').value)
+                };
+
+                showLoading('正在保存交易配置...');
+                const res = await fetch('/api/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification('配置已保存，请重启交易机器人使配置生效', 'success');
+                } else {
+                    showNotification(`保存失败: ${data.detail}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        // Prompt Management
+        async function loadPrompts() {
+            try {
+                const res = await fetch('/api/prompts');
+                const data = await res.json();
+
+                const table = document.getElementById('promptsTable');
+                if (!data.success || !data.data || data.data.length === 0) {
+                    table.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">暂无Prompt</td></tr>';
+                    document.getElementById('currentPromptName').textContent = '未配置';
+                    return;
+                }
+
+                // Get current active prompt
+                const cfgRes = await fetch('/api/config');
+                const cfgData = await cfgRes.json();
+                const activePromptName = cfgData.success ? cfgData.data.active_prompt : null;
+
+                // Update current prompt display
+                const activePrompt = data.data.find(p => p.name === activePromptName);
+                document.getElementById('currentPromptName').textContent = activePrompt ?
+                    `${activePrompt.name}${activePrompt.description ? ' - ' + activePrompt.description : ''}` : '未配置';
+
+                table.innerHTML = data.data.map(prompt => `
+                    <tr class="border-b border-gray-700 hover:bg-gray-700/30">
+                        <td class="py-3 px-4 text-white font-medium">${escapeHtml(prompt.name)}</td>
+                        <td class="py-3 px-4 text-gray-400">${escapeHtml(prompt.description || '-')}</td>
+                        <td class="py-3 px-4">
+                            ${prompt.name === activePromptName ?
+                                '<span class="px-2 py-1 rounded text-xs bg-green-500/20 text-green-400">● 使用中</span>' :
+                                '<span class="px-2 py-1 rounded text-xs bg-gray-500/20 text-gray-400">未使用</span>'
+                            }
+                        </td>
+                        <td class="py-3 px-4 text-gray-400 text-sm">${prompt.updated_at || '-'}</td>
+                        <td class="py-3 px-4 text-right space-x-2">
+                            <button onclick="viewPrompt('${escapeHtml(prompt.name)}')" class="text-blue-400 hover:text-blue-300 text-sm">查看</button>
+                            <button onclick="editPrompt('${escapeHtml(prompt.name)}')" class="text-yellow-400 hover:text-yellow-300 text-sm">编辑</button>
+                            ${prompt.name !== activePromptName ?
+                                `<button onclick="usePrompt('${escapeHtml(prompt.name)}')" class="text-green-400 hover:text-green-300 text-sm">应用</button>` : ''}
+                            <button onclick="deletePrompt('${escapeHtml(prompt.name)}')" class="text-red-400 hover:text-red-300 text-sm">删除</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('加载Prompt列表失败:', error);
+                document.getElementById('promptsTable').innerHTML =
+                    '<tr><td colspan="5" class="text-center py-8 text-red-500">加载失败</td></tr>';
+            }
+        }
+
+        function showAddPromptModal() {
+            promptEditMode = 'add';
+            currentEditingPrompt = null;
+            document.getElementById('promptModalTitle').textContent = '新增Prompt';
+            document.getElementById('promptName').value = '';
+            document.getElementById('promptDescription').value = '';
+            document.getElementById('promptContent').value = '';
+            document.getElementById('promptName').readOnly = false;
+            document.getElementById('promptDescription').readOnly = false;
+
+            // Show textarea, hide rendered markdown
+            document.getElementById('promptContent').classList.remove('hidden');
+            document.getElementById('promptContentRendered').classList.add('hidden');
+
+            // Show save button
+            document.getElementById('btnSavePrompt').style.display = 'block';
+            document.getElementById('promptModal').classList.remove('hidden');
+        }
+
+        async function viewPrompt(name) {
+            try {
+                const res = await fetch(`/api/prompts/${encodeURIComponent(name)}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    promptEditMode = 'view';
+                    currentEditingPrompt = name;
+                    document.getElementById('promptModalTitle').textContent = '查看Prompt';
+                    document.getElementById('promptName').value = data.data.name;
+                    document.getElementById('promptDescription').value = data.data.description || '';
+
+                    // Make fields readonly
+                    document.getElementById('promptName').readOnly = true;
+                    document.getElementById('promptDescription').readOnly = true;
+
+                    // Hide textarea, show rendered markdown
+                    document.getElementById('promptContent').classList.add('hidden');
+                    const renderedDiv = document.getElementById('promptContentRendered');
+                    renderedDiv.classList.remove('hidden');
+                    renderedDiv.classList.add('markdown-content');
+
+                    // Render markdown using marked.js
+                    renderedDiv.innerHTML = marked.parse(data.data.content);
+
+                    // Hide save button in view mode
+                    document.getElementById('btnSavePrompt').style.display = 'none';
+                    document.getElementById('promptModal').classList.remove('hidden');
+                } else {
+                    showNotification(`加载失败: ${data.message || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`加载失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function editPrompt(name) {
+            try {
+                const res = await fetch(`/api/prompts/${encodeURIComponent(name)}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    promptEditMode = 'edit';
+                    currentEditingPrompt = name;
+                    document.getElementById('promptModalTitle').textContent = '编辑Prompt';
+                    document.getElementById('promptName').value = data.data.name;
+                    document.getElementById('promptDescription').value = data.data.description || '';
+                    document.getElementById('promptContent').value = data.data.content;
+
+                    // Make name readonly (cannot change name), description editable
+                    document.getElementById('promptName').readOnly = true;
+                    document.getElementById('promptDescription').readOnly = false;
+
+                    // Show textarea, hide rendered markdown
+                    document.getElementById('promptContent').classList.remove('hidden');
+                    document.getElementById('promptContentRendered').classList.add('hidden');
+
+                    // Show save button
+                    document.getElementById('btnSavePrompt').style.display = 'block';
+                    document.getElementById('promptModal').classList.remove('hidden');
+                } else {
+                    showNotification(`加载失败: ${data.message || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`加载失败: ${error.message}`, 'error');
+            }
+        }
+
+        function closePromptModal() {
+            document.getElementById('promptModal').classList.add('hidden');
+            document.getElementById('btnSavePrompt').style.display = 'inline-block';
+
+            // Reset form
+            document.getElementById('promptContent').classList.remove('hidden');
+            document.getElementById('promptContentRendered').classList.add('hidden');
+        }
+
+        async function savePrompt() {
+            const name = document.getElementById('promptName').value.trim();
+            const description = document.getElementById('promptDescription').value.trim();
+            const content = document.getElementById('promptContent').value.trim();
+
+            if (!name) {
+                showNotification('请输入Prompt名称', 'warning');
+                return;
+            }
+
+            if (!content) {
+                showNotification('请输入Prompt内容', 'warning');
+                return;
+            }
+
+            try {
+                const url = promptEditMode === 'add' ? '/api/prompts' : `/api/prompts/${encodeURIComponent(currentEditingPrompt)}`;
+                const method = promptEditMode === 'add' ? 'POST' : 'PUT';
+
+                showLoading('正在保存Prompt...');
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description, content })
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closePromptModal();
+                    await loadPrompts();
+                } else {
+                    showNotification(`保存失败: ${data.message || data.detail || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function usePrompt(name) {
+            if (!confirm(`确定要应用 "${name}" 作为当前交易策略的Prompt吗？\n\n需要重启交易机器人才能生效。`)) {
+                return;
+            }
+
+            try {
+                showLoading('正在应用Prompt...');
+                const res = await fetch(`/api/prompts/${encodeURIComponent(name)}/use`, {
+                    method: 'POST'
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(data.message + ' 请重启交易机器人使配置生效。', 'success', 4000);
+                    await loadPrompts();
+                } else {
+                    showNotification(`应用失败: ${data.message || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`应用失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function deletePrompt(name) {
+            if (!confirm(`确定要删除 "${name}" 吗？此操作不可恢复。`)) {
+                return;
+            }
+
+            try {
+                showLoading('正在删除Prompt...');
+                const res = await fetch(`/api/prompts/${encodeURIComponent(name)}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    await loadPrompts();
+                } else {
+                    showNotification(`删除失败: ${data.message || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`删除失败: ${error.message}`, 'error');
+            }
+        }
+
+        // Accounts management
+        async function loadAccounts() {
+            try {
+                const res = await fetch('/api/okx/accounts');
+                const data = await res.json();
+
+                const table = document.getElementById('accountsTable');
+                if (!data.success || !data.data || data.data.length === 0) {
+                    table.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500">暂无账户</td></tr>';
+                    return;
+                }
+
+                table.innerHTML = data.data.map(acc => `
+                    <tr class="border-b border-gray-700 hover:bg-gray-700/30">
+                        <td class="py-3 px-4 text-white">${acc.name}</td>
+                        <td class="py-3 px-4 text-gray-400 font-mono text-sm">${acc.api_key.slice(0, 8)}...${acc.api_key.slice(-4)}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded text-xs ${acc.is_demo ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}">
+                                ${acc.is_demo ? '模拟盘' : '实盘'}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-gray-400">标准</td>
+                        <td class="py-3 px-4 text-gray-400 text-sm">${acc.updated_at}</td>
+                        <td class="py-3 px-4 text-right space-x-2">
+                            <button onclick="useAccount('${acc.name}')" class="text-blue-400 hover:text-blue-300 text-sm">使用</button>
+                            <button onclick="deleteAccount('${acc.name}')" class="text-red-400 hover:text-red-300 text-sm">删除</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Load current account
+                const cfgRes = await fetch('/api/config');
+                const cfgData = await cfgRes.json();
+                if (cfgData.success && cfgData.data.okx_api_key) {
+                    const apiKey = cfgData.data.okx_api_key;
+                    const account = data.data.find(acc => acc.api_key === apiKey);
+                    document.getElementById('currentAccount').textContent = account ? account.name : '未选择';
+                } else {
+                    document.getElementById('currentAccount').textContent = '未配置';
+                }
+            } catch (error) {
+                console.error('加载账户失败:', error);
+                document.getElementById('currentAccount').textContent = '加载失败';
+            }
+        }
+
+        function showAddAccountModal() {
+            document.getElementById('addAccountModal').classList.remove('hidden');
+            currentEditingAccount = null;
+            // Clear form
+            document.getElementById('accountName').value = '';
+            document.getElementById('accountApiKey').value = '';
+            document.getElementById('accountSecretKey').value = '';
+            document.getElementById('accountPassphrase').value = '';
+            document.getElementById('accountIsDemo').checked = false;
+        }
+
+        function closeAddAccountModal() {
+            document.getElementById('addAccountModal').classList.add('hidden');
+        }
+
+        async function saveAccount() {
+            const name = document.getElementById('accountName').value;
+            const apiKey = document.getElementById('accountApiKey').value;
+            const secretKey = document.getElementById('accountSecretKey').value;
+            const passphrase = document.getElementById('accountPassphrase').value;
+            const isDemo = document.getElementById('accountIsDemo').checked;
+
+            if (!name || !apiKey || !secretKey || !passphrase) {
+                showNotification('请填写所有必填项', 'warning');
+                return;
+            }
+
+            try {
+                showLoading('正在保存账户...');
+                const res = await fetch('/api/okx/accounts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name, api_key: apiKey, secret_key: secretKey,
+                        passphrase, is_demo: isDemo
+                    })
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closeAddAccountModal();
+                    await loadAccounts();
+                } else {
+                    showNotification(await res.text(), 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function useAccount(name) {
+            try {
+                showLoading('正在切换账户...');
+                const res = await fetch(`/api/okx/accounts/${encodeURIComponent(name)}/use`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(data.message + ' 请重启相关服务使配置生效', 'success', 4000);
+                } else {
+                    showNotification('切换失败', 'error');
+                }
+                await loadAccounts();
+            } catch (error) {
+                hideLoading();
+                showNotification(`切换失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteAccount(name) {
+            if (!confirm(`确定要删除账户 "${name}" 吗？`)) return;
+
+            try {
+                showLoading('正在删除账户...');
+                const res = await fetch(`/api/okx/accounts/${encodeURIComponent(name)}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification('删除失败', 'error');
+                }
+                await loadAccounts();
+            } catch (error) {
+                hideLoading();
+                showNotification(`删除失败: ${error.message}`, 'error');
+            }
+        }
+
+        // Collector details
+        async function refreshCollectorDetails() {
+            try {
+                const res = await fetch('/api/collector/status');
+                const data = await res.json();
+
+                if (data.running) {
+                    document.getElementById('collectorDetailStatus').innerHTML = '<span class="text-green-400">● 运行中</span>';
+                    document.getElementById('collectorDetailPid').textContent = data.pid || '--';
+                    document.getElementById('collectorDetailUptime').textContent = data.uptime || '--';
+                    document.getElementById('collectorDetailCpu').textContent = data.cpu_percent !== null ? `${data.cpu_percent}%` : '--';
+                    document.getElementById('collectorDetailMemory').textContent = data.memory_mb !== null ? `${data.memory_mb} MB` : '--';
+                } else {
+                    document.getElementById('collectorDetailStatus').innerHTML = '<span class="text-red-400">● 已停止</span>';
+                    document.getElementById('collectorDetailPid').textContent = '--';
+                    document.getElementById('collectorDetailUptime').textContent = '--';
+                    document.getElementById('collectorDetailCpu').textContent = '--';
+                    document.getElementById('collectorDetailMemory').textContent = '--';
+                }
+            } catch (error) {
+                console.error('刷新采集器详情失败:', error);
+            }
+        }
+
+        async function loadCollectorConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const data = await res.json();
+
+                if (data.success) {
+                    const cfg = data.data;
+                    document.getElementById('cfgCollectorSymbols').value = cfg.collector_symbols || 'BTC-USDT-SWAP,ETH-USDT-SWAP';
+                    document.getElementById('cfgCollectorTimeframes').value = cfg.collector_timeframes || '1m,5m,15m,30m,1H,4H';
+                    document.getElementById('cfgCollectorHistoryDays').value = cfg.collector_history_days || 30;
+                    document.getElementById('cfgCollectorStatusInterval').value = cfg.collector_status_interval || 20;
+                    document.getElementById('cfgCollectorDataTimeout').value = cfg.collector_data_timeout || 180;
+                }
+            } catch (error) {
+                console.error('加载采集器配置失败:', error);
+            }
+        }
+
+        async function saveCollectorConfig() {
+            const config = {
+                collector_symbols: document.getElementById('cfgCollectorSymbols').value,
+                collector_timeframes: document.getElementById('cfgCollectorTimeframes').value,
+                collector_history_days: parseInt(document.getElementById('cfgCollectorHistoryDays').value),
+                collector_status_interval: parseInt(document.getElementById('cfgCollectorStatusInterval').value),
+                collector_data_timeout: parseInt(document.getElementById('cfgCollectorDataTimeout').value)
+            };
+
+            try {
+                showLoading('正在保存采集器配置...');
+                const res = await fetch('/api/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification('采集器配置已保存，请重启采集器使配置生效', 'success');
+                } else {
+                    showNotification(`保存失败: ${data.detail || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        // MySQL Config
+        async function saveMySQLConfig() {
+            const config = {
+                mysql_host: document.getElementById('cfgMysqlHost').value,
+                mysql_port: parseInt(document.getElementById('cfgMysqlPort').value),
+                mysql_user: document.getElementById('cfgMysqlUser').value,
+                mysql_password: document.getElementById('cfgMysqlPassword').value,
+                mysql_database: document.getElementById('cfgMysqlDatabase').value
+            };
+
+            // 验证必填字段
+            if (!config.mysql_host || !config.mysql_user || !config.mysql_database) {
+                showNotification('请填写必填字段：主机、用户名、数据库名称', 'warning');
+                return;
+            }
+
+            try {
+                showLoading('正在保存MySQL配置...');
+                const res = await fetch('/api/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification('MySQL配置已保存，请重启交易机器人和数据采集器使配置生效', 'success', 4000);
+                } else {
+                    showNotification(`保存失败: ${data.detail || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testMySQLConnection() {
+            const config = {
+                host: document.getElementById('cfgMysqlHost').value,
+                port: parseInt(document.getElementById('cfgMysqlPort').value),
+                user: document.getElementById('cfgMysqlUser').value,
+                password: document.getElementById('cfgMysqlPassword').value,
+                database: document.getElementById('cfgMysqlDatabase').value
+            };
+
+            // 验证必填字段
+            if (!config.host || !config.user || !config.database) {
+                showNotification('请填写必填字段：主机、用户名、数据库名称', 'warning');
+                return;
+            }
+
+            try {
+                showLoading('正在测试MySQL连接...');
+                const res = await fetch('/api/mysql/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification(`MySQL连接成功！版本: ${data.version || 'Unknown'}`, 'success');
+                } else {
+                    showNotification(`连接失败: ${data.error || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        // Logs
+        async function loadLogs() {
+            try {
+                const logSource = document.getElementById('logSourceFilter').value;
+                const logLevel = document.getElementById('logLevelFilter').value;
+                const logLines = document.getElementById('logLinesFilter').value;
+                const container = document.getElementById('logsContainer');
+
+                // 根据数据源选择API端点
+                const endpoint = logSource === 'bot' ? '/api/logs/bot' : '/api/logs/collector';
+
+                // 构建查询参数
+                const params = new URLSearchParams();
+                params.append('lines', logLines);
+                if (logLevel) {
+                    params.append('level', logLevel);
+                }
+
+                const res = await fetch(`${endpoint}?${params}`);
+                const data = await res.json();
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    container.innerHTML = `
+                        <div class="log-line">
+                            <span class="log-timestamp">[${new Date().toLocaleTimeString('zh-CN')}]</span>
+                            <span class="log-level-INFO">[INFO]</span>
+                            <span class="log-message">暂无日志数据</span>
+                            <span class="terminal-cursor"></span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 渲染日志行
+                const logLines2 = data.data.map((log, index) => {
+                    const timestamp = log.timestamp || new Date().toLocaleTimeString('zh-CN');
+                    const level = log.level || 'INFO';
+                    const message = log.message || '';
+
+                    // 根据级别决定消息样式
+                    let messageClass = 'log-message';
+                    if (level === 'ERROR') {
+                        messageClass = 'log-message-error';
+                    } else if (level === 'WARNING') {
+                        messageClass = 'log-message-warning';
+                    }
+
+                    // 添加光标到最后一行
+                    const cursor = (index === data.data.length - 1) ? '<span class="terminal-cursor"></span>' : '';
+
+                    return `
+                        <div class="log-line">
+                            <span class="log-level-${level}">[${level}]</span>
+                            <span class="${messageClass}">${escapeHtml(message)}</span>${cursor}
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = logLines2;
+
+                // 显示日志文件路径（可选）
+                if (data.log_file) {
+                    console.log(`当前查看日志文件: ${data.log_file}`);
+                }
+
+            } catch (error) {
+                console.error('加载日志失败:', error);
+                const container = document.getElementById('logsContainer');
+                container.innerHTML = `
+                    <div class="log-line">
+                        <span class="log-timestamp">[${new Date().toLocaleTimeString('zh-CN')}]</span>
+                        <span class="log-level-ERROR">[ERROR]</span>
+                        <span class="log-message">加载日志失败: ${escapeHtml(error.message)}</span>
+                        <span class="terminal-cursor"></span>
+                    </div>
+                `;
+            }
+        }
+
+        // 清空日志显示
+        function clearLogs() {
+            const container = document.getElementById('logsContainer');
+            container.innerHTML = `
+                <div class="log-line">
+                    <span class="log-timestamp">[${new Date().toLocaleTimeString('zh-CN')}]</span>
+                    <span class="log-level-INFO">[INFO]</span>
+                    <span class="log-message">日志已清空</span>
+                    <span class="terminal-cursor"></span>
+                </div>
+            `;
+        }
+
+        // HTML转义函数，防止XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Alias for backward compatibility
+        async function loadStrategyLogs() {
+            await loadLogs();
+        }
+
+        // Feishu Bot Configuration
+        async function saveFeishuConfig() {
+            const config = {
+                feishu_enabled: document.getElementById('feishuEnabled').checked,
+                feishu_webhook_url: document.getElementById('feishuWebhookUrl').value.trim()
+            };
+
+            // 验证必填字段
+            if (config.feishu_enabled && !config.feishu_webhook_url) {
+                showNotification('启用飞书机器人时必须填写Webhook地址', 'warning');
+                return;
+            }
+
+            // 验证URL格式
+            if (config.feishu_webhook_url) {
+                try {
+                    new URL(config.feishu_webhook_url);
+                } catch (e) {
+                    showNotification('Webhook地址格式不正确，请输入有效的URL', 'warning');
+                    return;
+                }
+            }
+
+            try {
+                showLoading('正在保存飞书配置...');
+                const res = await fetch('/api/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification('飞书配置已保存，请重启交易机器人使配置生效', 'success', 4000);
+                } else {
+                    showNotification(`保存失败: ${data.detail || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`保存失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFeishuWebhook() {
+            const webhookUrl = document.getElementById('feishuWebhookUrl').value.trim();
+
+            if (!webhookUrl) {
+                showNotification('请先填写Webhook地址', 'warning');
+                return;
+            }
+
+            // 验证URL格式
+            try {
+                new URL(webhookUrl);
+            } catch (e) {
+                showNotification('Webhook地址格式不正确，请输入有效的URL', 'warning');
+                return;
+            }
+
+            try {
+                showLoading('正在发送测试消息...');
+                const res = await fetch('/api/feishu/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        webhook_url: webhookUrl,
+                        test_message: {
+                            signal: '测试',
+                            inst_id: 'BTC-USDT-SWAP',
+                            text: '这是一条来自DesicAi系统的测试消息。\n\n如果您收到此消息，说明飞书机器人配置成功！\n\n测试时间: ' + new Date().toLocaleString('zh-CN')
+                        }
+                    })
+                });
+
+                const data = await res.json();
+                hideLoading();
+
+                if (data.success) {
+                    showNotification('测试消息发送成功！请检查飞书是否收到消息', 'success', 4000);
+                } else {
+                    showNotification(`测试失败: ${data.error || data.message || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification(`测试失败: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

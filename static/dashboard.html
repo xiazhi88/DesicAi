@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DesicAi Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+    <style>
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+        }
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Custom Scrollbar for modals */
+        .modal-content-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-content-scroll::-webkit-scrollbar-track {
+            background: rgba(31, 41, 55, 0.5);
+            border-radius: 4px;
+        }
+        .modal-content-scroll::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .modal-content-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.7);
+        }
+        /* Modal backdrop */
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        /* Modal content */
+        .modal-content {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* Line clamp for text truncation */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .mobile-hide { display: none !important; }
+            .mobile-full { width: 100% !important; }
+            .mobile-text-xs { font-size: 0.75rem !important; }
+            .mobile-text-sm { font-size: 0.875rem !important; }
+            .mobile-p-2 { padding: 0.5rem !important; }
+            .mobile-p-3 { padding: 0.75rem !important; }
+            .mobile-gap-2 { gap: 0.5rem !important; }
+            .mobile-space-x-1 > * + * { margin-left: 0.25rem !important; }
+            .mobile-overflow-x-auto { overflow-x: auto !important; }
+        }
+        /* Markdown content styling - Enhanced */
+        .markdown-content {
+            line-height: 1.7;
+        }
+        .markdown-content h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #f9fafb;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.5rem;
+        }
+        .markdown-content h1:first-child {
+            margin-top: 0;
+        }
+        .markdown-content h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-top: 1.25rem;
+            margin-bottom: 0.65rem;
+            color: #f9fafb;
+            border-bottom: 1px solid #4b5563;
+            padding-bottom: 0.35rem;
+        }
+        .markdown-content h2:first-child {
+            margin-top: 0;
+        }
+        .markdown-content h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #e5e7eb;
+        }
+        .markdown-content h3:first-child {
+            margin-top: 0;
+        }
+        .markdown-content p {
+            margin-bottom: 0.85rem;
+            line-height: 1.75;
+            color: #d1d5db;
+        }
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 1.75rem;
+            margin-bottom: 0.85rem;
+            color: #d1d5db;
+        }
+        .markdown-content li {
+            margin-bottom: 0.4rem;
+            line-height: 1.6;
+        }
+        .markdown-content ul li {
+            list-style-type: disc;
+        }
+        .markdown-content ol li {
+            list-style-type: decimal;
+        }
+        .markdown-content code {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.15));
+            color: #93c5fd;
+            padding: 0.2rem 0.45rem;
+            border-radius: 0.35rem;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            font-weight: 500;
+        }
+        .markdown-content pre {
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.8), rgba(17, 24, 39, 0.9));
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 0.85rem;
+            border: 1px solid #374151;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .markdown-content pre code {
+            background: transparent;
+            padding: 0;
+            border: none;
+            color: #e5e7eb;
+            font-size: 0.875rem;
+        }
+        .markdown-content strong {
+            font-weight: 700;
+            color: #fbbf24;
+        }
+        .markdown-content em {
+            font-style: italic;
+            color: #a78bfa;
+        }
+        .markdown-content blockquote {
+            border-left: 4px solid #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+            padding: 0.75rem 1rem;
+            margin: 0.85rem 0;
+            border-radius: 0 0.375rem 0.375rem 0;
+            color: #9ca3af;
+            font-style: italic;
+        }
+        .markdown-content a {
+            color: #60a5fa;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+        .markdown-content a:hover {
+            color: #93c5fd;
+        }
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0.85rem;
+        }
+        .markdown-content th,
+        .markdown-content td {
+            border: 1px solid #374151;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        .markdown-content th {
+            background: rgba(59, 130, 246, 0.1);
+            font-weight: 600;
+            color: #f9fafb;
+        }
+        .markdown-content hr {
+            border: none;
+            border-top: 2px solid #374151;
+            margin: 1.5rem 0;
+        }
+
+        /* Notification Toast Styles */
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 320px;
+            max-width: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 16px 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            z-index: 9999;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .notification-toast.show {
+            transform: translateX(0);
+        }
+        .notification-toast.success {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .notification-toast.error {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .notification-toast.warning {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #333;
+        }
+        .notification-toast.info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .notification-icon {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+        }
+        .notification-content {
+            flex: 1;
+            line-height: 1.5;
+        }
+        .notification-close {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .notification-close:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+    <!-- Notification Toast Container -->
+    <div id="notificationToast" class="notification-toast">
+        <div class="notification-icon" id="notificationIcon"></div>
+        <div class="notification-content" id="notificationContent"></div>
+        <div class="notification-close" id="notificationClose" onclick="hideNotification()">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+        </div>
+    </div>
+
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-gray-800 shadow-lg border-b border-gray-700 sticky top-0 z-40">
+            <div class="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-lg sm:text-2xl font-bold text-white">DesicAi </h1>
+                            <p class="text-xs sm:text-sm text-gray-400 mobile-hide">智能AI决策 · 实时监控</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1 sm:space-x-4 mobile-gap-2 flex-wrap">
+
+                        <button onclick="window.location.href='/manager'" class="px-2 py-1.5 sm:px-4 sm:py-2 bg-green-600 hover:bg-green-700 rounded-lg transition duration-200 flex items-center space-x-1 sm:space-x-2 text-xs sm:text-base">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span class="mobile-hide">管理控制台</span>
+                            <span class="hidden max-[768px]:inline">管理</span>
+                        </button>
+                        </button>
+
+                        <button onclick="refreshData()" class="px-2 py-1.5 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition duration-200 flex items-center space-x-1 sm:space-x-2 text-xs sm:text-base">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span class="mobile-hide">刷新</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-2 sm:px-4 py-3 sm:py-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                <!-- Balance Card -->
+                <div class="bg-gray-800 rounded-lg shadow-lg p-3 sm:p-6 border border-gray-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-gray-400 text-xs sm:text-sm font-medium">可用余额</h3>
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-base sm:text-2xl font-bold text-white truncate" id="balance">--.-- USDT</div>
+                    <div class="text-xs text-gray-500 mt-1 mobile-hide">总权益: <span id="equity">--.--</span> USDT</div>
+                </div>
+
+                <!-- Today Decisions Card -->
+                <div class="bg-gray-800 rounded-lg shadow-lg p-3 sm:p-6 border border-gray-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-gray-400 text-xs sm:text-sm font-medium">今日AI决策</h3>
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-base sm:text-2xl font-bold text-white" id="todayDecisions">0</div>
+                    <div class="text-xs text-gray-500 mt-1 mobile-hide">平均置信度: <span id="avgConfidence">--</span>%</div>
+                </div>
+
+                <!-- Today Trades Card -->
+                <div class="bg-gray-800 rounded-lg shadow-lg p-3 sm:p-6 border border-gray-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-gray-400 text-xs sm:text-sm font-medium">今日交易</h3>
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-base sm:text-2xl font-bold text-white" id="todayTrades">0</div>
+                    <div class="text-xs text-gray-500 mt-1 mobile-hide">已执行交易次数</div>
+                </div>
+
+                <!-- API Status Card -->
+                <div class="bg-gray-800 rounded-lg shadow-lg p-3 sm:p-6 border border-gray-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-gray-400 text-xs sm:text-sm font-medium">系统状态</h3>
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-yellow-500/20 rounded-full flex items-center justify-center pulse-glow">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-base sm:text-2xl font-bold text-green-500" id="apiStatus">运行中</div>
+                    <div class="text-xs text-gray-500 mt-1 mobile-hide">AI: <span id="aiStatus">已启用</span></div>
+                </div>
+            </div>
+
+            <!-- Balance Chart Section -->
+            <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700 mb-4 sm:mb-6">
+                <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-700 flex items-center justify-between">
+                    <h2 class="text-base sm:text-lg font-semibold text-white flex items-center">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                        </svg>
+                        <span class="mobile-text-sm">余额收益曲线（自启动以来）</span>
+                    </h2>
+                    <div class="flex items-center space-x-2">
+                        <!-- 粒度切换按钮 -->
+                        <div class="flex bg-gray-700 rounded border border-gray-600">
+                            <button id="btnDaily" onclick="switchChartGranularity('daily')" class="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm rounded-l transition duration-200 bg-blue-600 text-white">
+                                按天
+                            </button>
+                            <button id="btnHourly" onclick="switchChartGranularity('hourly')" class="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm rounded-r transition duration-200 text-gray-300 hover:text-white">
+                                按小时
+                            </button>
+                        </div>
+                        <button onclick="loadBalanceChart()" class="px-2 py-1 sm:px-3 sm:py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs sm:text-sm transition duration-200 flex items-center space-x-1">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span class="mobile-hide">刷新</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-3 sm:p-6">
+                    <!-- Chart Stats -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4">
+                        <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                            <div class="text-gray-400 text-xs mb-1">期初余额</div>
+                            <div class="text-white font-semibold text-sm sm:text-base" id="chartStartBalance">--</div>
+                        </div>
+                        <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                            <div class="text-gray-400 text-xs mb-1">当前余额</div>
+                            <div class="text-white font-semibold text-sm sm:text-base" id="chartEndBalance">--</div>
+                        </div>
+                        <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                            <div class="text-gray-400 text-xs mb-1">总收益</div>
+                            <div class="font-semibold text-sm sm:text-base" id="chartTotalPnl">--</div>
+                        </div>
+                        <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                            <div class="text-gray-400 text-xs mb-1">收益率</div>
+                            <div class="font-semibold text-sm sm:text-base" id="chartPnlRate">--</div>
+                        </div>
+                    </div>
+                    <!-- Chart Canvas -->
+                    <div class="relative" style="height: 300px;">
+                        <canvas id="balanceChart"></canvas>
+                    </div>
+                    <div id="chartLoading" class="hidden text-center text-gray-400 py-8">
+                        <svg class="animate-spin h-8 w-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        加载中...
+                    </div>
+                    <div id="chartError" class="hidden text-center text-red-400 py-8">
+                        加载失败，请稍后重试
+                    </div>
+                </div>
+            </div>
+
+            <!-- Positions Management -->
+            <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700 mb-4 sm:mb-6">
+                <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-700">
+                    <h2 class="text-base sm:text-lg font-semibold text-white flex items-center">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        持仓管理
+                    </h2>
+                    <!-- Tabs -->
+                    <div class="flex space-x-1 mt-3 sm:mt-4">
+                        <button id="currentPosTab" onclick="switchPositionTab('current')" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-t-lg bg-blue-600 text-white font-medium transition duration-200 text-xs sm:text-base">
+                            当前持仓
+                        </button>
+                        <button id="historyPosTab" onclick="switchPositionTab('history')" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-t-lg bg-gray-700 text-gray-400 hover:bg-gray-600 font-medium transition duration-200 text-xs sm:text-base">
+                            历史记录
+                        </button>
+                    </div>
+                </div>
+                <div class="p-3 sm:p-6">
+                    <!-- Current Positions Content -->
+                    <div id="currentPositionsContent" class="space-y-2 sm:space-y-3">
+                        <div id="positions" class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                            <div class="text-center text-gray-500 py-6 sm:py-8 text-sm col-span-full">暂无持仓</div>
+                        </div>
+                    </div>
+                    <!-- Historical Positions Content -->
+                    <div id="historyPositionsContent" class="hidden">
+                        <!-- Filter Bar -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm text-gray-400">显示数量:</label>
+                                <select id="historyLimit" onchange="loadHistoricalPositions()" class="bg-gray-700 text-white text-sm rounded px-3 py-1 border border-gray-600">
+                                    <option value="10">10条</option>
+                                    <option value="20" selected>20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                            <button onclick="loadHistoricalPositions()" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm transition duration-200 flex items-center space-x-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span>刷新</span>
+                            </button>
+                        </div>
+                        <!-- Performance Stats -->
+                        <div id="performanceStats" class="bg-gray-700/50 rounded-lg p-4 mb-4 hidden">
+                            <h3 class="text-sm font-semibold text-gray-300 mb-3">30天交易统计</h3>
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div class="bg-gray-800/50 rounded p-2">
+                                    <div class="text-gray-400 text-xs">总交易</div>
+                                    <div class="text-white font-semibold mt-1"><span id="statTotalTrades">--</span> 笔</div>
+                                </div>
+                                <div class="bg-gray-800/50 rounded p-2">
+                                    <div class="text-gray-400 text-xs">胜率</div>
+                                    <div class="text-white font-semibold mt-1"><span id="statWinRate">--</span>%</div>
+                                </div>
+                                <div class="bg-gray-800/50 rounded p-2">
+                                    <div class="text-gray-400 text-xs">总盈亏</div>
+                                    <div class="font-semibold mt-1"><span id="statTotalPnl">--</span> USDT</div>
+                                </div>
+                                <div class="bg-gray-800/50 rounded p-2">
+                                    <div class="text-gray-400 text-xs">平均盈亏</div>
+                                    <div class="font-semibold mt-1"><span id="statAvgPnl">--</span> USDT</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Historical Positions List -->
+                        <div id="historicalPositions" class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 max-h-96 overflow-y-auto scrollbar-hide">
+                            <div class="text-center text-gray-500 py-8 col-span-full">加载中...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Conversations & Strategy Logs -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
+                <!-- AI Conversations -->
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+                    <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-700 flex items-center justify-between">
+                        <h2 class="text-base sm:text-lg font-semibold text-white flex items-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                            </svg>
+                            <span class="mobile-text-sm">AI分析记录</span>
+                        </h2>
+                        <select id="sessionFilter" onchange="loadConversations()" class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部会话</option>
+                        </select>
+                    </div>
+                    <div class="p-3 sm:p-6 h-80 sm:h-96 overflow-y-auto scrollbar-hide">
+                        <div id="conversations" class="space-y-2 sm:space-y-3">
+                            <div class="text-center text-gray-500 py-6 sm:py-8 text-sm">暂无AI分析记录</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy Logs -->
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+                    <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-700 flex items-center justify-between">
+                        <h2 class="text-base sm:text-lg font-semibold text-white flex items-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                            </svg>
+                            <span class="mobile-text-sm">策略执行日志</span>
+                        </h2>
+                        <select id="logTypeFilter" onchange="loadStrategyLogs()" class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs sm:text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">全部</option>
+                            <option value="trade">交易</option>
+                            <option value="risk">风控</option>
+                            <option value="signal">信号</option>
+                        </select>
+                    </div>
+                    <div class="p-3 sm:p-6 h-80 sm:h-96 overflow-y-auto scrollbar-hide">
+                        <div id="strategyLogs" class="space-y-2">
+                            <div class="text-center text-gray-500 py-6 sm:py-8 text-sm">暂无策略日志</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 border-t border-gray-700 mt-6 sm:mt-8">
+            <div class="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
+                <div class="text-center text-gray-400 text-xs sm:text-sm">
+                    <p>DesicAi Dashboard v2.0 | AI驱动的智能交易决策</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- AI对话详情弹窗 -->
+    <div id="conversationModal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop bg-black bg-opacity-50">
+        <div class="flex items-center justify-center min-h-screen px-2 sm:px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <!-- 背景遮罩 -->
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true" onclick="closeConversationModal()">
+                <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
+            </div>
+
+            <!-- 弹窗内容 -->
+            <div class="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full w-full max-w-[95%] modal-content">
+                <!-- 标题栏 -->
+                <div class="bg-gray-700 px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-600 flex items-center justify-between">
+                    <h3 class="text-base sm:text-lg font-semibold text-white flex items-center">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                        </svg>
+                        AI对话详情
+                    </h3>
+                    <button onclick="closeConversationModal()" class="text-gray-400 hover:text-white transition">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- 内容区域 -->
+                <div class="bg-gray-800 px-3 sm:px-6 py-4 sm:py-5 max-h-[70vh] overflow-y-auto modal-content-scroll">
+                    <!-- 基础信息 -->
+                    <div class="mb-5 sm:mb-6">
+                        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            基础信息
+                        </h3>
+                        <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                            <div class="bg-gradient-to-br from-gray-700/60 to-gray-800/60 rounded-lg p-3 sm:p-4 border border-gray-600/40 shadow-md hover:border-gray-500/60 transition-all duration-200">
+                                <div class="text-gray-400 text-xs sm:text-sm mb-2 flex items-center">
+                                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                    </svg>
+                                    交易对
+                                </div>
+                                <div class="text-white font-semibold text-sm sm:text-base" id="modalInstId">--</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-gray-700/60 to-gray-800/60 rounded-lg p-3 sm:p-4 border border-gray-600/40 shadow-md hover:border-gray-500/60 transition-all duration-200">
+                                <div class="text-gray-400 text-xs sm:text-sm mb-2 flex items-center">
+                                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                                    </svg>
+                                    会话ID
+                                </div>
+                                <div class="text-white font-medium text-xs break-all" id="modalSessionId">--</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-gray-700/60 to-gray-800/60 rounded-lg p-3 sm:p-4 border border-gray-600/40 shadow-md hover:border-gray-500/60 transition-all duration-200">
+                                <div class="text-gray-400 text-xs sm:text-sm mb-2 flex items-center">
+                                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                                    </svg>
+                                    信号类型
+                                </div>
+                                <div class="text-white font-semibold text-sm sm:text-base" id="modalSignal">--</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-lg p-3 sm:p-4 border border-blue-500/30 shadow-md hover:border-blue-500/50 transition-all duration-200">
+                                <div class="text-blue-300 text-xs sm:text-sm mb-2 flex items-center">
+                                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    置信度
+                                </div>
+                                <div class="text-blue-400 font-bold text-base sm:text-lg" id="modalConfidence">--</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-gray-700/60 to-gray-800/60 rounded-lg p-3 sm:p-4 border border-gray-600/40 shadow-md hover:border-gray-500/60 transition-all duration-200">
+                                <div class="text-gray-400 text-xs sm:text-sm mb-2 flex items-center">
+                                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                    </svg>
+                                    执行状态
+                                </div>
+                                <div class="font-semibold text-sm sm:text-base" id="modalExecuted">--</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-gray-700/60 to-gray-800/60 rounded-lg p-3 sm:p-4 border border-gray-600/40 shadow-md hover:border-gray-500/60 transition-all duration-200">
+                                <div class="text-gray-400 text-xs sm:text-sm mb-2 flex items-center">
+                                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    创建时间
+                                </div>
+                                <div class="text-white font-medium text-xs sm:text-sm" id="modalCreatedAt">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prompt (Collapsible) -->
+                    <div class="mb-4 sm:mb-5">
+                        <div class="flex items-center justify-between mb-3 cursor-pointer bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg p-3 border border-green-500/20 hover:border-green-500/40 transition-all duration-200" onclick="togglePrompt()">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 sm:w-9 sm:h-9 bg-green-500/20 rounded-lg flex items-center justify-center mr-3">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-semibold text-sm sm:text-base">Prompt 输入</h4>
+                                    <p class="text-xs text-gray-400 mt-0.5">点击展开/收起</p>
+                                </div>
+                            </div>
+                            <button type="button" class="text-green-400 hover:text-green-300 transition-colors">
+                                <svg id="promptToggleIcon" class="w-5 h-5 sm:w-6 sm:h-6 transform rotate-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="promptContent" class="bg-gradient-to-br from-gray-700/60 to-gray-800/60 rounded-lg p-4 sm:p-5 border border-gray-600/50 shadow-lg hidden backdrop-blur-sm">
+                            <div class="text-gray-300 text-xs sm:text-sm markdown-content" id="modalPrompt">--</div>
+                        </div>
+                    </div>
+
+                    <!-- Response (Formatted) -->
+                    <div>
+                        <div class="flex items-center mb-3 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-lg p-3 border border-blue-500/20">
+                            <div class="w-8 h-8 sm:w-9 sm:h-9 bg-blue-500/20 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-semibold text-sm sm:text-base">AI 响应</h4>
+                                <p class="text-xs text-gray-400 mt-0.5">AI 生成的决策内容</p>
+                            </div>
+                        </div>
+                        <div id="modalResponse" class="bg-gradient-to-br from-gray-700/60 to-gray-800/60 rounded-lg p-4 sm:p-5 border border-gray-600/50 shadow-lg text-xs sm:text-sm backdrop-blur-sm">--</div>
+                    </div>
+                </div>
+
+                <!-- 底部按钮 -->
+                <div class="bg-gray-700 px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-600 flex justify-end">
+                    <button onclick="closeConversationModal()" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-600 hover:bg-gray-500 rounded-lg transition duration-200 text-sm sm:text-base">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 仓位复盘详情弹窗 -->
+    <div id="positionReviewModal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop bg-black bg-opacity-50">
+        <div class="flex items-center justify-center min-h-screen px-2 sm:px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <!-- 背景遮罩 -->
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true" onclick="closePositionReviewModal()">
+                <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
+            </div>
+
+            <!-- 弹窗内容 -->
+            <div class="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full w-full max-w-[95%] modal-content">
+                <!-- 标题栏 -->
+                <div class="bg-gray-700 px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-600 flex items-center justify-between">
+                    <h3 class="text-base sm:text-lg font-semibold text-white flex items-center">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        仓位复盘分析
+                    </h3>
+                    <button onclick="closePositionReviewModal()" class="text-gray-400 hover:text-white transition">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- 内容区域 -->
+                <div class="bg-gray-800 px-3 sm:px-6 py-3 sm:py-4 max-h-[70vh] overflow-y-auto modal-content-scroll">
+                    <!-- 基础信息 -->
+                    <div class="mb-4 sm:mb-6">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-3 sm:mb-4" id="reviewBasicInfo">
+                            <!-- 动态填充 -->
+                        </div>
+                    </div>
+
+                    <!-- AI决策历史 -->
+                    <div id="reviewDecisions" class="mb-4 sm:mb-6">
+                        <!-- 动态填充 -->
+                    </div>
+
+                    <!-- AI复盘总结 -->
+                    <div id="reviewSummary">
+                        <!-- 动态填充 -->
+                    </div>
+                </div>
+
+                <!-- 底部按钮 -->
+                <div class="bg-gray-700 px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-600 flex justify-end">
+                    <button onclick="closePositionReviewModal()" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-600 hover:bg-gray-500 rounded-lg transition duration-200 text-sm sm:text-base">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== Notification System ==========
+        let notificationTimeout = null;
+
+        /**
+         * Show notification toast
+         * @param {string} message - The message to display
+         * @param {string} type - Type: 'success', 'error', 'warning', 'info'
+         * @param {number} duration - Duration in ms (default: 3000)
+         */
+        function showNotification(message, type = 'info', duration = 3000) {
+            const toast = document.getElementById('notificationToast');
+            const icon = document.getElementById('notificationIcon');
+            const content = document.getElementById('notificationContent');
+
+            // Clear existing timeout
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+            }
+
+            // Set icon based on type
+            const icons = {
+                success: `<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`,
+                error: `<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>`,
+                warning: `<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>`,
+                info: `<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>`
+            };
+
+            // Update toast content
+            icon.innerHTML = icons[type] || icons.info;
+            content.textContent = message;
+
+            // Update toast class
+            toast.className = `notification-toast ${type}`;
+
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            // Auto hide after duration
+            notificationTimeout = setTimeout(() => hideNotification(), duration);
+        }
+
+        /**
+         * Hide notification toast
+         */
+        function hideNotification() {
+            const toast = document.getElementById('notificationToast');
+            toast.classList.remove('show');
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+                notificationTimeout = null;
+            }
+        }
+
+        // ========== End Notification System ==========
+
+        // Auto refresh interval (30 seconds)
+        const REFRESH_INTERVAL = 30000;
+        let refreshTimer;
+
+        // Initialize on page load
+        // ==================== 页面初始化 ====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 显示加载提示
+            showLoadingState();
+
+            try {
+                // 分批并发加载，避免浏览器并发连接限制（HTTP/1.1通常限制6个）
+                // 第一批：核心数据（高优先级）
+                await Promise.allSettled([
+                    loadAccountBalance(),
+                    loadPositions()
+                ]);
+
+                // 第二批：统计和配置数据（中优先级）
+                await Promise.allSettled([
+                    loadConfig(),
+                    loadStats(),
+                    loadSessions(),
+                    loadBalanceChart()  // 加载余额曲线图
+                ]);
+
+                // 第三批：日志数据（低优先级，数据量大）
+                await Promise.allSettled([
+                    loadConversations(),
+                    loadStrategyLogs()
+                ]);
+            } catch (error) {
+                console.error('初始化加载失败:', error);
+            } finally {
+                hideLoadingState();
+                // 启动自动刷新
+                startAutoRefresh();
+            }
+        });
+
+        // 显示全局加载状态
+        function showLoadingState() {
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.id = 'globalLoading';
+            loadingIndicator.className = 'fixed top-0 left-0 right-0 bg-blue-600 text-white text-center py-2 z-50';
+            loadingIndicator.innerHTML = '<span class="animate-pulse">正在加载数据...</span>';
+            document.body.prepend(loadingIndicator);
+        }
+
+        // 隐藏全局加载状态
+        function hideLoadingState() {
+            const loader = document.getElementById('globalLoading');
+            if (loader) {
+                loader.remove();
+            }
+        }
+
+        // Start auto refresh
+        function startAutoRefresh() {
+            refreshTimer = setInterval(refreshData, REFRESH_INTERVAL);
+        }
+
+        // Main refresh function（优化后：分批刷新，避免并发瓶颈）
+        async function refreshData() {
+            // 分批刷新，每批最多4个请求（避免超过浏览器并发限制）
+            // 批次1：核心实时数据
+            await Promise.allSettled([
+                loadBotStatus(),
+                loadAccountBalance(),
+                loadPositions()
+            ]);
+
+            // 批次2：统计数据
+            await Promise.allSettled([
+                loadConfig(),
+                loadStats()
+            ]);
+
+            // 批次3：日志数据（可选，减少刷新频率）
+            // 日志数据刷新频率降低，每3次刷新才更新一次
+            if (!window.refreshCounter) window.refreshCounter = 0;
+            window.refreshCounter++;
+
+            if (window.refreshCounter % 3 === 0) {
+                await Promise.allSettled([
+                    loadConversations(),
+                    loadStrategyLogs()
+                ]);
+            }
+
+            updateLastUpdateTime();
+        }
+
+        // ==================== 工具函数 ====================
+
+        // 带超时的fetch请求（防止长时间挂起）
+        async function fetchWithTimeout(url, options = {}, timeout = 50000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                return response;
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error(`请求超时 (${timeout}ms)`);
+                }
+                throw error;
+            }
+        }
+
+        // 安全的异步数据加载（带错误处理和重试）
+        async function safeAsyncLoad(loadFunc, retries = 1) {
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    await loadFunc();
+                    return;
+                } catch (error) {
+                    console.error(`加载失败 (尝试 ${i + 1}/${retries + 1}):`, error);
+                    if (i === retries) {
+                        // 最后一次尝试失败，记录错误但不阻塞其他加载
+                        console.error('最终加载失败:', error);
+                    } else {
+                        // 等待后重试
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
+            }
+        }
+
+        // Convert UTC time to Beijing time (UTC+8)
+        function toBeijingTime(dateString) {
+            const date = new Date(dateString);
+            // Add 8 hours for Beijing time
+            const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000));
+            return beijingTime;
+        }
+
+        // Format time as Beijing time string
+        function formatBeijingTime(dateString, includeDate = false) {
+            const beijingTime = toBeijingTime(dateString);
+            if (includeDate) {
+                return beijingTime.toLocaleString('zh-CN', {
+                    timeZone: 'Asia/Shanghai',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            } else {
+                return beijingTime.toLocaleTimeString('zh-CN', {
+                    timeZone: 'Asia/Shanghai',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+        }
+
+        // Update last update time (Beijing time)
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const beijingTime = new Date(now.getTime()  );
+            document.getElementById('lastUpdate').textContent = beijingTime.toLocaleTimeString('zh-CN', {
+                timeZone: 'Asia/Shanghai',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // Load account balance
+        async function loadAccountBalance() {
+            try {
+                const response = await fetchWithTimeout('/api/account/balance', {}, 50000);
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('balance').textContent = `${data.data.available.toFixed(2)} USDT`;
+                    document.getElementById('equity').textContent = data.data.equity.toFixed(2);
+                }
+            } catch (error) {
+                console.error('加载余额失败:', error);
+                document.getElementById('balance').textContent = '加载失败';
+            }
+        }
+
+        // Load positions
+        async function loadPositions() {
+            try {
+                const response = await fetch('/api/positions');
+                const data = await response.json();
+                const container = document.getElementById('positions');
+
+                if (data.success && data.data.length > 0) {
+                    container.innerHTML = data.data.map(pos => {
+                        const side = pos.posSide === 'long' ? '多' : '空';
+                        const sideColor = pos.posSide === 'long' ? 'text-green-500' : 'text-red-500';
+                        const uplColor = parseFloat(pos.upl) >= 0 ? 'text-green-500' : 'text-red-500';
+                        const uplSign = parseFloat(pos.upl) >= 0 ? '+' : '';
+                        const profitRateColor = pos.profitRate >= 0 ? 'text-green-500' : 'text-red-500';
+                        const profitRateSign = pos.profitRate >= 0 ? '+' : '';
+
+                        return `
+                            <div class="bg-gray-700/50 rounded-lg p-3 sm:p-4 border border-gray-600">
+                                <div class="flex items-center justify-between mb-2 sm:mb-3">
+                                    <span class="font-medium text-white text-base sm:text-lg">${pos.instId}</span>
+                                    <span class="px-2 py-1 rounded text-xs font-medium ${sideColor} bg-gray-600">${side}头 ${pos.lever}x</span>
+                                </div>
+
+                                <!-- 开仓信息 -->
+                                <div class="mb-2 sm:mb-3 pb-2 sm:pb-3 border-b border-gray-600">
+                                    <div class="grid grid-cols-2 gap-2 text-xs sm:text-sm">
+                                        <div>
+                                            <div class="text-gray-400 text-xs">开仓时间</div>
+                                            <div class="text-white font-mono text-xs">${pos.openTime}</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-gray-400 text-xs">持仓天数</div>
+                                            <div class="text-white">${pos.daysHeld} 天</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 持仓数据 -->
+                                <div class="grid grid-cols-3 gap-1 sm:gap-2 text-xs sm:text-sm mb-2 sm:mb-3">
+                                    <div>
+                                        <div class="text-gray-400 text-xs">持仓数量</div>
+                                        <div class="text-white truncate">${Math.abs(parseFloat(pos.pos))} 张</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-400 text-xs">开仓均价</div>
+                                        <div class="text-white truncate">${parseFloat(pos.avgPx).toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-400 text-xs">标记价格</div>
+                                        <div class="text-white truncate">${parseFloat(pos.markPx || pos.last).toFixed(2)}</div>
+                                    </div>
+                                </div>
+
+                                <!-- 盈亏信息 -->
+                                <div class="grid grid-cols-3 gap-1 sm:gap-2 text-xs sm:text-sm bg-gray-800/50 rounded p-2">
+                                    <div>
+                                        <div class="text-gray-400 text-xs">未实现盈亏</div>
+                                        <div class="${uplColor} font-medium truncate">${uplSign}${parseFloat(pos.upl).toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-400 text-xs">收益率</div>
+                                        <div class="${profitRateColor} font-bold truncate">${profitRateSign}${pos.profitRate}%</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-400 text-xs">累计手续费</div>
+                                        <div class="text-red-400 truncate">${pos.totalFee} U</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="text-center text-gray-500 py-8 col-span-full">暂无持仓</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load positions:', error);
+                document.getElementById('positions').innerHTML = '<div class="text-center text-red-500 py-8 col-span-full">加载失败</div>';
+            }
+        }
+
+        // Switch between current and historical positions tabs
+        function switchPositionTab(tab) {
+            const currentTab = document.getElementById('currentPosTab');
+            const historyTab = document.getElementById('historyPosTab');
+            const currentContent = document.getElementById('currentPositionsContent');
+            const historyContent = document.getElementById('historyPositionsContent');
+
+            if (tab === 'current') {
+                // Switch to current positions
+                currentTab.classList.remove('bg-gray-700', 'text-gray-400', 'hover:bg-gray-600');
+                currentTab.classList.add('bg-blue-600', 'text-white');
+                historyTab.classList.remove('bg-blue-600', 'text-white');
+                historyTab.classList.add('bg-gray-700', 'text-gray-400', 'hover:bg-gray-600');
+
+                currentContent.classList.remove('hidden');
+                historyContent.classList.add('hidden');
+            } else {
+                // Switch to historical positions
+                historyTab.classList.remove('bg-gray-700', 'text-gray-400', 'hover:bg-gray-600');
+                historyTab.classList.add('bg-blue-600', 'text-white');
+                currentTab.classList.remove('bg-blue-600', 'text-white');
+                currentTab.classList.add('bg-gray-700', 'text-gray-400', 'hover:bg-gray-600');
+
+                historyContent.classList.remove('hidden');
+                currentContent.classList.add('hidden');
+
+                // Load historical positions if not already loaded
+                loadHistoricalPositions();
+            }
+        }
+
+        // Load historical positions
+        async function loadHistoricalPositions() {
+            try {
+                const limit = document.getElementById('historyLimit').value;
+                const response = await fetch(`/api/positions/history?limit=${limit}`);
+                const data = await response.json();
+                const container = document.getElementById('historicalPositions');
+
+                if (data.success && data.data.length > 0) {
+                    // 更新缓存
+                    positionsHistoryCache = data.data;
+
+                    container.innerHTML = data.data.map(pos => {
+                        const side = pos.pos_side === 'long' ? '多' : '空';
+                        const sideColor = pos.pos_side === 'long' ? 'text-green-500' : 'text-red-500';
+                        const pnlColor = parseFloat(pos.pnl) >= 0 ? 'text-green-500' : 'text-red-500';
+                        const pnlSign = parseFloat(pos.pnl) >= 0 ? '+' : '';
+                        const pnlIcon = parseFloat(pos.pnl) >= 0 ? '✅' : '❌';
+
+                        // Format holding time
+                        const holdingSeconds = pos.holding_seconds;
+                        let holdTime = '';
+                        if (holdingSeconds > 3600) {
+                            holdTime = `${(holdingSeconds / 3600).toFixed(1)}小时`;
+                        } else if (holdingSeconds > 60) {
+                            holdTime = `${Math.floor(holdingSeconds / 60)}分钟`;
+                        } else {
+                            holdTime = `${Math.floor(holdingSeconds)}秒`;
+                        }
+
+                        // Format close time
+                        const closeTime = pos.close_time ? new Date(pos.close_time).toLocaleString('zh-CN', {
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : 'N/A';
+
+                        return `
+                            <div class="bg-gray-700/50 rounded-lg p-2 sm:p-3 border border-gray-600">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-1 sm:space-x-2">
+                                        <span class="font-medium text-white text-sm sm:text-base">${pos.inst_id}</span>
+                                        <span class="px-2 py-1 rounded text-xs font-medium ${sideColor} bg-gray-600">${side}头 ${pos.leverage}x</span>
+                                    </div>
+                                    <span class="text-xs text-gray-400">${closeTime}</span>
+                                </div>
+
+                                <div class="grid grid-cols-4 gap-1 sm:gap-2 text-xs sm:text-sm mb-2">
+                                    <div>
+                                        <div class="text-gray-400 text-xs">数量</div>
+                                        <div class="text-white truncate">${pos.size} 张</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-400 text-xs">入场</div>
+                                        <div class="text-white truncate">${parseFloat(pos.entry_price).toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-400 text-xs">出场</div>
+                                        <div class="text-white truncate">${parseFloat(pos.exit_price).toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-400 text-xs">时长</div>
+                                        <div class="text-white truncate">${holdTime}</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between bg-gray-800/50 rounded p-2 flex-wrap gap-1">
+                                    <div class="flex items-center space-x-1 sm:space-x-2">
+                                        <span class="text-xs text-gray-400">盈亏:</span>
+                                        <span class="${pnlColor} font-bold text-xs sm:text-sm">${pnlIcon} ${pnlSign}${parseFloat(pos.pnl).toFixed(2)} USDT</span>
+                                        <span class="${pnlColor} text-xs">(${pnlSign}${pos.pnl_ratio.toFixed(2)}%)</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="text-xs text-gray-400">
+                                            手续费: <span class="text-red-400">${parseFloat(pos.fee).toFixed(2)} U</span>
+                                        </div>
+                                        ${pos.review_summary || pos.decision_count > 0 ? `
+                                            <button onclick="showPositionReview('${pos.inst_id}', '${pos.pos_side}', ${pos.open_time})"
+                                                    class="px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs transition duration-200">
+                                                查看复盘
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    // Load performance stats
+                    loadPerformanceStats();
+                } else {
+                    container.innerHTML = '<div class="text-center text-gray-500 py-8 col-span-full">暂无历史记录</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load historical positions:', error);
+                document.getElementById('historicalPositions').innerHTML = '<div class="text-center text-red-500 py-8 col-span-full">加载失败</div>';
+            }
+        }
+
+        // Load performance statistics
+        async function loadPerformanceStats() {
+            try {
+                const response = await fetch('/api/positions/stats?days=30');
+                const data = await response.json();
+                const statsContainer = document.getElementById('performanceStats');
+
+                if (data.success && data.data && data.data.total_trades > 0) {
+                    const stats = data.data;
+                    const totalPnlColor = stats.total_pnl >= 0 ? 'text-green-500' : 'text-red-500';
+                    const avgPnlColor = stats.avg_pnl >= 0 ? 'text-green-500' : 'text-red-500';
+
+                    document.getElementById('statTotalTrades').textContent = stats.total_trades;
+                    document.getElementById('statWinRate').textContent = stats.win_rate.toFixed(1);
+
+                    const totalPnlSpan = document.getElementById('statTotalPnl');
+                    totalPnlSpan.textContent = stats.total_pnl.toFixed(2);
+                    totalPnlSpan.className = `font-semibold ${totalPnlColor}`;
+
+                    const avgPnlSpan = document.getElementById('statAvgPnl');
+                    avgPnlSpan.textContent = stats.avg_pnl.toFixed(2);
+                    avgPnlSpan.className = `font-semibold ${avgPnlColor}`;
+
+                    statsContainer.classList.remove('hidden');
+                } else {
+                    statsContainer.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to load performance stats:', error);
+            }
+        }
+
+        // Load system config
+        async function loadConfig() {
+            try {
+                const response = await fetchWithTimeout('/api/config', {}, 50000);
+                const data = await response.json();
+                if (data.success) {
+                    const cfg = data.data;
+
+                    // 状态显示
+                    document.getElementById('aiStatus').textContent = cfg.ai_configured ? '已启用' : '未启用';
+                    document.getElementById('apiStatus').textContent = cfg.api_configured ? '运行中' : '未配置';
+                    document.getElementById('apiStatus').className = cfg.api_configured ? 'text-2xl font-bold text-green-500' : 'text-2xl font-bold text-red-500';
+
+                    // Store config for reference (configuration is now managed in manager.html)
+                    window.currentConfig = cfg;
+                }
+            } catch (error) {
+                console.error('Failed to load config:', error);
+            }
+        }
+
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetchWithTimeout('/api/stats', {}, 50000);
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('todayDecisions').textContent = data.data.today_decisions;
+                    document.getElementById('todayTrades').textContent = data.data.today_trades;
+                    document.getElementById('avgConfidence').textContent = data.data.avg_confidence.toFixed(1);
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // Load sessions for filter
+        async function loadSessions() {
+            try {
+                const response = await fetch('/api/sessions');
+                const data = await response.json();
+                if (data.success && data.data.length > 0) {
+                    const select = document.getElementById('sessionFilter');
+                    select.innerHTML = '<option value="">全部会话</option>' +
+                        data.data.map(s => `<option value="${s.session_id}">${s.session_id} (${s.decision_count}次)</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load sessions:', error);
+            }
+        }
+
+        // Load strategy logs
+        async function loadStrategyLogs() {
+            try {
+                const logType = document.getElementById('logTypeFilter').value;
+                const url = logType ? `/api/strategy_logs?log_type=${logType}&limit=40` : '/api/strategy_logs?limit=40';
+                const response = await fetchWithTimeout(url, {}, 50000);
+                const data = await response.json();
+                const container = document.getElementById('strategyLogs');
+
+                if (data.success && data.data.length > 0) {
+                    container.innerHTML = data.data.map(log => {
+                        const levelColors = {
+                            'success': 'text-green-400',
+                            'info': 'text-blue-400',
+                            'warning': 'text-yellow-400',
+                            'error': 'text-red-400'
+                        };
+                        const levelClass = levelColors[log.log_level] || 'text-gray-400';
+                        const time = formatBeijingTime(log.created_at, false);
+
+                        return `
+                            <div class="bg-gray-700/30 rounded px-3 py-2 text-xs">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-gray-400">${time}</span>
+                                    <span class="${levelClass} font-medium uppercase">${log.log_level}</span>
+                                </div>
+                                <div class="text-gray-300">${log.message}</div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="text-center text-gray-500 py-8">暂无策略日志</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load strategy logs:', error);
+                document.getElementById('strategyLogs').innerHTML = '<div class="text-center text-red-500 py-8">加载失败</div>';
+            }
+        }
+
+        // Load bot status
+
+
+        // Toggle bot (start/stop)
+
+        // ==================== 对话详情弹窗 ====================
+
+        // 存储对话数据（避免重复请求）
+        let conversationsCache = [];
+
+        // 切换Prompt显示/隐藏
+        function togglePrompt() {
+            const promptContent = document.getElementById('promptContent');
+            const toggleIcon = document.getElementById('promptToggleIcon');
+
+            if (promptContent.classList.contains('hidden')) {
+                promptContent.classList.remove('hidden');
+                toggleIcon.classList.add('rotate-180');
+            } else {
+                promptContent.classList.add('hidden');
+                toggleIcon.classList.remove('rotate-180');
+            }
+        }
+
+        // 格式化AI响应JSON为易读文本
+        function formatAIResponse(responseText) {
+            try {
+                const response = JSON.parse(responseText);
+
+                // 信号类型映射
+                const signalMap = {
+                    'OPEN_LONG': '开多',
+                    'OPEN_SHORT': '开空',
+                    'HOLD': '持有',
+                    'ADJUST_STOP': '调整止盈止损',
+                    'CLOSE_LONG': '平多',
+                    'CLOSE_SHORT': '平空'
+                };
+
+                // 构建格式化的HTML
+                let html = '<div class="space-y-3">';
+
+                // 交易信号
+                const signalText = signalMap[response.signal] || response.signal;
+                const signalColor = response.signal.includes('LONG') ? 'text-green-400' :
+                                   response.signal.includes('SHORT') ? 'text-red-400' :
+                                   response.signal === 'ADJUST_STOP' ? 'text-yellow-400' : 'text-gray-400';
+                html += `<div class="flex items-center">
+                    <span class="text-gray-400 w-24">交易信号:</span>
+                    <span class="font-semibold ${signalColor}">${signalText}</span>
+                </div>`;
+
+                // 置信度
+                const confidenceColor = response.confidence >= 80 ? 'text-green-400' :
+                                       response.confidence >= 60 ? 'text-yellow-400' : 'text-orange-400';
+                html += `<div class="flex items-center">
+                    <span class="text-gray-400 w-24">置信度:</span>
+                    <span class="${confidenceColor} font-semibold">${response.confidence}%</span>
+                </div>`;
+
+                // 开仓数量（如果有）
+                if (response.size) {
+                    html += `<div class="flex items-center">
+                        <span class="text-gray-400 w-24">开仓数量:</span>
+                        <span class="text-blue-400">${response.size} 张</span>
+                    </div>`;
+                }
+
+                // 止损率
+                if (response.stop_loss_rate) {
+                    html += `<div class="flex items-center">
+                        <span class="text-gray-400 w-24">止损率:</span>
+                        <span class="text-red-400">${(response.stop_loss_rate * 100).toFixed(1)}%</span>
+                    </div>`;
+                }
+
+                // 止盈率
+                if (response.take_profit_rate) {
+                    html += `<div class="flex items-center">
+                        <span class="text-gray-400 w-24">止盈率:</span>
+                        <span class="text-green-400">${(response.take_profit_rate * 100).toFixed(1)}%</span>
+                    </div>`;
+                }
+
+                // 持仓时长
+                if (response.holding_time) {
+                    html += `<div class="flex items-center">
+                        <span class="text-gray-400 w-24">持仓时长:</span>
+                        <span class="text-gray-300">${response.holding_time}</span>
+                    </div>`;
+                }
+
+                // 调整类型（止盈止损调整）
+                if (response.adjust_type) {
+                    const adjustMap = {
+                        'stop_loss': '止损',
+                        'take_profit': '止盈',
+                        'both': '止盈止损'
+                    };
+                    html += `<div class="flex items-center">
+                        <span class="text-gray-400 w-24">调整类型:</span>
+                        <span class="text-yellow-400">${adjustMap[response.adjust_type] || response.adjust_type}</span>
+                    </div>`;
+                }
+
+                // 新止损价
+                if (response.new_stop_loss_price) {
+                    html += `<div class="flex items-center">
+                        <span class="text-gray-400 w-24">新止损价:</span>
+                        <span class="text-red-400">${response.new_stop_loss_price}</span>
+                    </div>`;
+                }
+
+                // 新止盈价
+                if (response.new_take_profit_price) {
+                    html += `<div class="flex items-center">
+                        <span class="text-gray-400 w-24">新止盈价:</span>
+                        <span class="text-green-400">${response.new_take_profit_price}</span>
+                    </div>`;
+                }
+
+                // 分析原因
+                if (response.reason) {
+                    html += `<div class="pt-2 border-t border-gray-600">
+                        <div class="text-gray-400 mb-2">分析原因:</div>
+                        <div class="text-gray-300 text-sm leading-relaxed bg-gray-800/50 rounded p-3">${response.reason}</div>
+                    </div>`;
+                }
+
+                // 风险提示
+                if (response.risk_warning) {
+                    html += `<div class="pt-2 border-t border-gray-600">
+                        <div class="text-orange-400 mb-2">⚠️ 风险提示:</div>
+                        <div class="text-gray-300 text-sm leading-relaxed bg-orange-500/10 rounded p-3 border border-orange-500/30">${response.risk_warning}</div>
+                    </div>`;
+                }
+
+                html += '</div>';
+                return html;
+            } catch (error) {
+                // 如果不是JSON或解析失败，返回原始文本
+                console.error('解析AI响应失败:', error);
+                return `<pre class="text-gray-300 text-sm whitespace-pre-wrap font-mono">${responseText}</pre>`;
+            }
+        }
+
+        // 显示对话详情
+        async function showConversationDetail(convId) {
+            try {
+                // 优化：直接调用详情API，不需要从缓存查找或重新加载列表
+                const response = await fetchWithTimeout(`/api/conversations/${convId}`, {}, 5000);
+                const result = await response.json();
+
+                if (!result.success) {
+                    showNotification('无法找到对话数据', 'error');
+                    return;
+                }
+
+                const conversation = result.data;
+
+                // 填充弹窗数据
+                document.getElementById('modalInstId').textContent = conversation.inst_id;
+                document.getElementById('modalSessionId').textContent = conversation.session_id;
+                document.getElementById('modalSignal').textContent = conversation.signal || 'N/A';
+                document.getElementById('modalConfidence').textContent = conversation.confidence ? `${conversation.confidence}%` : 'N/A';
+
+                const executedElement = document.getElementById('modalExecuted');
+                if (conversation.is_executed) {
+                    executedElement.textContent = '✓ 已执行';
+                    executedElement.className = 'font-medium text-green-400';
+                } else {
+                    executedElement.textContent = '未执行';
+                    executedElement.className = 'font-medium text-gray-500';
+                }
+
+                document.getElementById('modalCreatedAt').textContent = formatBeijingTime(conversation.created_at, true);
+
+                // 使用 marked.js 解析 Prompt 的 Markdown
+                const promptText = conversation.prompt || '(无Prompt数据)';
+                const parsedPrompt = marked.parse(promptText);
+                document.getElementById('modalPrompt').innerHTML = parsedPrompt;
+
+                // 格式化AI响应
+                const modalResponse = document.getElementById('modalResponse');
+                modalResponse.innerHTML = formatAIResponse(conversation.response || '(无响应数据)');
+
+                // 重置Prompt折叠状态（默认隐藏）
+                const promptContent = document.getElementById('promptContent');
+                const toggleIcon = document.getElementById('promptToggleIcon');
+                promptContent.classList.add('hidden');
+                toggleIcon.classList.remove('rotate-180');
+
+                // 显示弹窗
+                document.getElementById('conversationModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('显示对话详情失败:', error);
+                showNotification('加载对话详情失败: ' + error.message, 'error');
+            }
+        }
+
+        // 关闭对话详情弹窗
+        function closeConversationModal() {
+            document.getElementById('conversationModal').classList.add('hidden');
+        }
+
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeConversationModal();
+                closePositionReviewModal();
+            }
+        });
+
+        // ==================== 仓位复盘弹窗 ====================
+
+        // 缓存历史持仓数据
+        let positionsHistoryCache = [];
+
+        // 显示仓位复盘详情
+        async function showPositionReview(instId, posSide, openTime) {
+            try {
+                // 从缓存中查找该仓位
+                const position = positionsHistoryCache.find(p =>
+                    p.inst_id === instId &&
+                    p.pos_side === posSide &&
+                    p.open_time === openTime
+                );
+
+                if (!position) {
+                    showNotification('无法找到仓位数据', 'error');
+                    return;
+                }
+
+                // 填充基础信息
+                const side = position.pos_side === 'long' ? '多' : '空';
+                const sideColor = position.pos_side === 'long' ? 'text-green-500' : 'text-red-500';
+                const pnlColor = parseFloat(position.pnl) >= 0 ? 'text-green-500' : 'text-red-500';
+                const pnlSign = parseFloat(position.pnl) >= 0 ? '+' : '';
+
+                const holdingSeconds = position.holding_seconds;
+                let holdTime = '';
+                if (holdingSeconds > 3600) {
+                    holdTime = `${(holdingSeconds / 3600).toFixed(1)}小时`;
+                } else if (holdingSeconds > 60) {
+                    holdTime = `${Math.floor(holdingSeconds / 60)}分钟`;
+                } else {
+                    holdTime = `${Math.floor(holdingSeconds)}秒`;
+                }
+
+                const openTimeStr = new Date(position.open_time).toLocaleString('zh-CN');
+                const closeTimeStr = new Date(position.close_time).toLocaleString('zh-CN');
+
+                document.getElementById('reviewBasicInfo').innerHTML = `
+                    <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                        <div class="text-gray-400 text-xs sm:text-sm mb-1">交易对</div>
+                        <div class="text-white font-medium text-sm sm:text-base">${position.inst_id}</div>
+                    </div>
+                    <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                        <div class="text-gray-400 text-xs sm:text-sm mb-1">方向</div>
+                        <div class="${sideColor} font-medium text-sm sm:text-base">${side}头 ${position.leverage}x</div>
+                    </div>
+                    <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                        <div class="text-gray-400 text-xs sm:text-sm mb-1">持仓时长</div>
+                        <div class="text-white font-medium text-sm sm:text-base">${holdTime}</div>
+                    </div>
+                    <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                        <div class="text-gray-400 text-xs sm:text-sm mb-1">盈亏</div>
+                        <div class="${pnlColor} font-medium text-sm sm:text-base">${pnlSign}${parseFloat(position.pnl).toFixed(2)} U</div>
+                    </div>
+                    <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                        <div class="text-gray-400 text-xs sm:text-sm mb-1">开仓价格</div>
+                        <div class="text-white font-medium text-sm sm:text-base">${parseFloat(position.entry_price).toFixed(2)}</div>
+                    </div>
+                    <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                        <div class="text-gray-400 text-xs sm:text-sm mb-1">平仓价格</div>
+                        <div class="text-white font-medium text-sm sm:text-base">${parseFloat(position.exit_price).toFixed(2)}</div>
+                    </div>
+                    <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                        <div class="text-gray-400 text-xs sm:text-sm mb-1">开仓时间</div>
+                        <div class="text-white font-medium text-xs">${openTimeStr}</div>
+                    </div>
+                    <div class="bg-gray-700/50 rounded p-2 sm:p-3">
+                        <div class="text-gray-400 text-xs sm:text-sm mb-1">平仓时间</div>
+                        <div class="text-white font-medium text-xs">${closeTimeStr}</div>
+                    </div>
+                `;
+
+                // 填充AI决策历史
+                if (position.decisions && position.decisions.length > 0) {
+                    let decisionsHtml = `
+                        <h4 class="text-white font-semibold text-sm sm:text-base mb-3 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            AI决策历史 (共${position.decisions.length}次)
+                        </h4>
+                        <div class="space-y-2 mb-4">
+                    `;
+
+                    position.decisions.forEach((decision, index) => {
+                        const timestamp = new Date(decision.timestamp).toLocaleString('zh-CN');
+                        const actionMap = {
+                            'OPEN_LONG': '开多',
+                            'OPEN_SHORT': '开空',
+                            'ADJUST_STOP': '调整止盈止损',
+                            'HOLD': '持有'
+                        };
+                        const actionText = actionMap[decision.action] || decision.action;
+                        const actionColor = decision.action.includes('LONG') ? 'text-green-400' :
+                                          decision.action.includes('SHORT') ? 'text-red-400' :
+                                          decision.action === 'ADJUST_STOP' ? 'text-yellow-400' : 'text-gray-400';
+
+                        const borderColor = decision.action.includes('LONG') ? 'border-green-500' :
+                                          decision.action.includes('SHORT') ? 'border-red-500' :
+                                          decision.action === 'ADJUST_STOP' ? 'border-yellow-500' : 'border-gray-500';
+
+                        decisionsHtml += `
+                            <div class="bg-gray-700/50 rounded p-3 border-l-4 ${borderColor}">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="${actionColor} font-semibold text-sm">#${index + 1} ${actionText}</span>
+                                    <span class="text-gray-400 text-xs">${timestamp}</span>
+                                </div>
+                                <div class="text-gray-300 text-xs mb-2">置信度: <span class="text-blue-400">${decision.confidence}%</span></div>
+                                ${decision.reason ? `<div class="text-gray-300 text-xs leading-relaxed bg-gray-800/50 rounded p-2">${decision.reason.substring(0, 200)}${decision.reason.length > 200 ? '...' : ''}</div>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    decisionsHtml += '</div>';
+                    document.getElementById('reviewDecisions').innerHTML = decisionsHtml;
+                } else {
+                    document.getElementById('reviewDecisions').innerHTML = '';
+                }
+
+                // 填充AI复盘总结
+                if (position.review_summary) {
+                    // 使用 marked.js 解析 Markdown
+                    const parsedSummary = marked.parse(position.review_summary);
+
+                    document.getElementById('reviewSummary').innerHTML = `
+                        <h4 class="text-white font-semibold text-sm sm:text-base mb-3 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                            </svg>
+                            AI复盘总结
+                        </h4>
+                        <div class="bg-gray-700/50 rounded p-4 text-gray-300 text-sm leading-relaxed markdown-content">
+                            ${parsedSummary}
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('reviewSummary').innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            暂无AI复盘总结
+                        </div>
+                    `;
+                }
+
+                // 显示弹窗
+                document.getElementById('positionReviewModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('显示仓位复盘失败:', error);
+                showNotification('加载仓位复盘失败: ' + error.message, 'error');
+            }
+        }
+
+        // 关闭仓位复盘弹窗
+        function closePositionReviewModal() {
+            document.getElementById('positionReviewModal').classList.add('hidden');
+        }
+
+        // 更新缓存（加载对话时同时更新缓存）
+        async function loadConversations() {
+            try {
+                const sessionId = document.getElementById('sessionFilter').value;
+                const url = sessionId ? `/api/conversations?session_id=${sessionId}&limit=50` : '/api/conversations?limit=50';
+                const response = await fetchWithTimeout(url, {}, 50000);
+                const data = await response.json();
+                const container = document.getElementById('conversations');
+
+                if (data.success && data.data.length > 0) {
+                    // 更新缓存
+                    conversationsCache = data.data;
+
+                    container.innerHTML = data.data.map(conv => {
+                        const signalColors = {
+                            'OPEN_LONG': 'bg-green-500/20 text-green-400 border-green-500',
+                            'OPEN_SHORT': 'bg-red-500/20 text-red-400 border-red-500',
+                            'CLOSE_LONG': 'bg-yellow-500/20 text-yellow-400 border-yellow-500',
+                            'CLOSE_SHORT': 'bg-orange-500/20 text-orange-400 border-orange-500',
+                            'HOLD': 'bg-gray-500/20 text-gray-400 border-gray-500'
+                        };
+                        const signalClass = signalColors[conv.signal] || signalColors['HOLD'];
+                        const time = formatBeijingTime(conv.created_at, true);
+                        const executed = conv.is_executed ? '<span class="text-green-400">✓ 已执行</span>' : '<span class="text-gray-500">未执行</span>';
+
+                        return `
+                            <div class="bg-gray-700/50 rounded-lg p-3 sm:p-4 border border-gray-600 hover:border-blue-500 transition cursor-pointer"
+                                 onclick="showConversationDetail(${conv.id})">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-gray-400">${time}</span>
+                                    <span class="px-2 py-1 rounded text-xs font-medium border ${signalClass}">${conv.signal}</span>
+                                </div>
+                                <div class="text-xs sm:text-sm text-gray-300 mb-2">
+                                    <span class="font-medium">${conv.inst_id}</span> | 置信度: <span class="text-blue-400">${conv.confidence}%</span>
+                                </div>
+                                <div class="text-xs text-gray-400 mb-2">点击查看完整AI分析详情</div>
+                                <div class="flex items-center justify-between text-xs flex-wrap gap-1">
+                                    <span class="text-gray-500 truncate">会话: ${conv.session_id}</span>
+                                    ${executed}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="text-center text-gray-500 py-8">暂无AI分析记录</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load conversations:', error);
+                document.getElementById('conversations').innerHTML = '<div class="text-center text-red-500 py-8">加载失败</div>';
+            }
+        }
+
+        // ========== 余额收益曲线图 ==========
+        let balanceChart = null;
+        let currentGranularity = 'daily'; // 当前粒度：'daily' 或 'hourly'
+
+        // 切换图表粒度
+        function switchChartGranularity(granularity) {
+            currentGranularity = granularity;
+
+            // 更新按钮样式
+            const btnDaily = document.getElementById('btnDaily');
+            const btnHourly = document.getElementById('btnHourly');
+
+            if (granularity === 'daily') {
+                btnDaily.className = 'px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm rounded-l transition duration-200 bg-blue-600 text-white';
+                btnHourly.className = 'px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm rounded-r transition duration-200 text-gray-300 hover:text-white';
+            } else {
+                btnDaily.className = 'px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm rounded-l transition duration-200 text-gray-300 hover:text-white';
+                btnHourly.className = 'px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm rounded-r transition duration-200 bg-blue-600 text-white';
+            }
+
+            // 重新加载图表
+            loadBalanceChart();
+        }
+
+        async function loadBalanceChart() {
+            try {
+                const canvas = document.getElementById('balanceChart');
+                const loadingEl = document.getElementById('chartLoading');
+                const errorEl = document.getElementById('chartError');
+
+                // 显示加载状态
+                canvas.style.display = 'none';
+                loadingEl.classList.remove('hidden');
+                errorEl.classList.add('hidden');
+
+                // 获取余额历史数据（使用BOT_START_TIME作为起始时间，传递粒度参数）
+                const response = await fetchWithTimeout(`/api/balance/history?granularity=${currentGranularity}`, {}, 10000);
+                const data = await response.json();
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    throw new Error('暂无数据');
+                }
+
+                // 准备图表数据
+                const chartData = data.data;
+                const labels = chartData.map(item => {
+                    const date = new Date(item.timestamp);
+                    if (currentGranularity === 'hourly') {
+                        // 按小时显示：MM-DD HH:mm
+                        return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) + ' ' +
+                               date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    } else {
+                        // 按天显示：MM-DD
+                        return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
+                    }
+                });
+                const balances = chartData.map(item => item.balance);
+
+                // 计算统计数据
+                const startBalance = balances[0];
+                const endBalance = balances[balances.length - 1];
+                const totalPnl = endBalance - startBalance;
+                const pnlRate = (totalPnl / startBalance * 100).toFixed(2);
+
+                // 更新统计卡片
+                document.getElementById('chartStartBalance').textContent = `${startBalance.toFixed(2)} USDT`;
+                document.getElementById('chartEndBalance').textContent = `${endBalance.toFixed(2)} USDT`;
+
+                const pnlEl = document.getElementById('chartTotalPnl');
+                pnlEl.textContent = `${totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)} USDT`;
+                pnlEl.className = `font-semibold text-sm sm:text-base ${totalPnl >= 0 ? 'text-green-500' : 'text-red-500'}`;
+
+                const rateEl = document.getElementById('chartPnlRate');
+                rateEl.textContent = `${pnlRate >= 0 ? '+' : ''}${pnlRate}%`;
+                rateEl.className = `font-semibold text-sm sm:text-base ${pnlRate >= 0 ? 'text-green-500' : 'text-red-500'}`;
+
+                // 销毁旧图表
+                if (balanceChart) {
+                    balanceChart.destroy();
+                }
+
+                // 创建新图表
+                canvas.style.display = 'block';
+                loadingEl.classList.add('hidden');
+
+                const ctx = canvas.getContext('2d');
+                balanceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '账户余额 (USDT)',
+                            data: balances,
+                            borderColor: totalPnl >= 0 ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)',
+                            backgroundColor: totalPnl >= 0 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: currentGranularity === 'hourly' ? 2 : 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: totalPnl >= 0 ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    color: '#d1d5db',
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                                titleColor: '#d1d5db',
+                                bodyColor: '#d1d5db',
+                                borderColor: '#374151',
+                                borderWidth: 1,
+                                padding: 12,
+                                displayColors: true,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `余额: ${context.parsed.y.toFixed(2)} USDT`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(75, 85, 99, 0.2)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#9ca3af',
+                                    font: { size: 10 }
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(75, 85, 99, 0.2)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#9ca3af',
+                                    font: { size: 10 },
+                                    callback: function(value) {
+                                        return value.toFixed(2) + ' U';
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('加载余额曲线失败:', error);
+                document.getElementById('balanceChart').style.display = 'none';
+                document.getElementById('chartLoading').classList.add('hidden');
+                document.getElementById('chartError').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
