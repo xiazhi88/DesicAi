@@ -31,9 +31,6 @@ from src.ai.data_manager import DataManager
 from src.ai.feature_engineer import FeatureEngineer
 from src.execution.smart_executor import SmartOrderExecutor
 from src.utils.fee_calculator import FeeCalculator
-from src.ui.conversation_logger import ConversationLogger
-
-
 class BTCEnhancedBotRaw:
     """BTC-USDT-SWAP 增强版交易机器人（方案A：原始数据）"""
 
@@ -235,10 +232,6 @@ class BTCEnhancedBotRaw:
 
         else:
             logger.warning(f"⚠️ 未配置AI或配置无效 (AI_PROVIDER={config.AI_PROVIDER})")
-
-        # 初始化对话记录器
-        self.conversation_logger = ConversationLogger()
-        logger.info(f"✓ 对话记录器已启用 (会话ID: {self.session_id})")
 
         # 获取并缓存合约信息
         try:
@@ -595,7 +588,7 @@ class BTCEnhancedBotRaw:
         try:
             balance = self.account_api.get_usdt_balance()
             if balance['success']:
-                self.cached_balance = balance.get('available', 0)
+                self.cached_balance = balance.get('availEq', 0)
                 self.balance_last_update = datetime.now()
                 logger.info(f"💰 初始余额: {self.cached_balance:.2f} USDT")
         except Exception as e:
@@ -1746,7 +1739,7 @@ class BTCEnhancedBotRaw:
         return True, "数据新鲜度检查通过"
 
 
-    async def run_analysis(self) -> dict:
+    async def run_analysis(self) :
         """
         运行一次增强分析（双周期版本：5m + 4H）
 
@@ -1754,12 +1747,11 @@ class BTCEnhancedBotRaw:
             分析结果
         """
         logger.info("=" * 60)
-        logger.info(f"增强版分析（双周期：5m+4H）: {self.inst_id}")
+        logger.info(f" {self.inst_id}")
         logger.info(f"时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info("=" * 60)
 
         # 提取双周期特征
-        logger.info("📊 提取双周期特征（5m短期 + 4H长期）...")
         features = self.feature_engineer.extract_dual_timeframe_features(self.inst_id)
 
         if not features or not features.get('short_term'):
@@ -1871,7 +1863,7 @@ class BTCEnhancedBotRaw:
 
             if not ticks or len(ticks) == 0:
                 logger.debug(f"⚠️ {self.inst_id}: 过去60秒无tick数据，返回空特征")
-                return None
+                return {}
 
             # 提取价格和成交量
             prices = [t['price'] for t in ticks]
@@ -1933,7 +1925,7 @@ class BTCEnhancedBotRaw:
             logger.error(f"实时聚合Tick特征失败: {e}")
             import traceback
             traceback.print_exc()
-            return None
+            return {}
 
     async def ai_analysis(self, features: dict, position_info: dict = None) -> dict:
         """AI分析（流式优化版：当捕捉到reason字段时立即启动决策，不等reason完整输出）"""
@@ -2005,7 +1997,6 @@ class BTCEnhancedBotRaw:
                 }
 
             # === 流式解析JSON ===
-            logger.info("📡 开始接收流式响应...")
             streaming_buffer = ""
             early_decision_triggered = False
             early_decision_data = None
@@ -2023,9 +2014,7 @@ class BTCEnhancedBotRaw:
                             if early_decision:
                                 early_decision_triggered = True
                                 early_decision_data = early_decision
-                                logger.success(f"⚡ 捕捉到reason字段！早期决策: {early_decision.get('signal')} (置信度 {early_decision.get('confidence')}%)")
                                 self.analysis = self.parse_ai_json_response(early_decision, features)
-                                logger.info('开始执行早期决策')
                                 # 启动后台线程保存
                                 self.executor_.submit(self.run_conversation)
 
@@ -2034,7 +2023,6 @@ class BTCEnhancedBotRaw:
                     continue
 
             # 流式输出完成，解析完整响应
-            logger.info("✓ 流式响应接收完成")
 
             try:
                 # 清理可能的markdown标记
@@ -2600,9 +2588,10 @@ class BTCEnhancedBotRaw:
                 # 如果是更新执行状态（is_executed=True）且已有conversation_id，则更新
                 if is_executed and self.current_conversation_id:
                     # 更新现有记录的执行状态
-                    success = self.conversation_logger.update_conversation_executed(
+                    success = self.data_manager.update_conversation_executed(
                         conversation_id=self.current_conversation_id,
-                        is_executed=True
+                        is_executed=True,
+                        api_key=config.API_KEY if config.API_KEY else 'default'
                     )
                     if success:
                         logger.debug(f"✓ 对话记录执行状态已更新: ID={self.current_conversation_id}")
@@ -2611,14 +2600,14 @@ class BTCEnhancedBotRaw:
                     return
 
                 # 否则创建新记录
-                conv_id = self.conversation_logger.save_conversation(
+                conv_id = self.data_manager.save_conversation(
                     session_id=self.session_id,
                     inst_id=self.inst_id,
                     prompt=user_prompt,  # 使用user_prompt
                     response=ai_content,
-                    features=features,
                     analysis=analysis,
-                    is_executed=is_executed
+                    is_executed=is_executed,
+                    api_key=config.API_KEY if config.API_KEY else 'default'
                 )
 
                 # 记录会话ID
@@ -3199,16 +3188,6 @@ class BTCEnhancedBotRaw:
         # 平仓：多头平仓用sell，空头平仓用buy
         side = 'sell' if target_pos_side == 'long' else 'buy'
 
-        # 保存策略日志 - 平仓尝试
-        self.conversation_logger.save_strategy_log(
-            session_id=self.session_id,
-            inst_id=self.inst_id,
-            log_type='trade',
-            log_level='info',
-            message=f"尝试平仓: {signal} {pos_size}张 @{current_price:.2f}",
-            data={'signal': signal, 'confidence': confidence, 'size': pos_size}
-        )
-
         # 调用智能平仓（注意：size必须是字符串）
         result = await self.executor.smart_close_position(
             inst_id=self.inst_id,
@@ -3220,31 +3199,11 @@ class BTCEnhancedBotRaw:
             logger.success(f"✅ 平仓成功！盈亏: {unrealized_pnl:.2f} USDT")
             self.last_trade_time = datetime.now()
 
-            # 保存策略日志 - 平仓成功
-            self.conversation_logger.save_strategy_log(
-                session_id=self.session_id,
-                inst_id=self.inst_id,
-                log_type='trade',
-                log_level='success',
-                message=f"平仓成功: {signal} {pos_size}张，盈亏: {unrealized_pnl:.2f} USDT",
-                data=result
-            )
-
             # ⚡ 交易成功后，在后台异步保存对话记录
             self._save_conversation_async(analysis, is_executed=True)
 
         else:
             logger.error(f"❌ 平仓失败: {result.get('error')}")
-
-            # 保存策略日志 - 平仓失败
-            self.conversation_logger.save_strategy_log(
-                session_id=self.session_id,
-                inst_id=self.inst_id,
-                log_type='trade',
-                log_level='error',
-                message=f"平仓失败: {result.get('error')}",
-                data=result
-            )
 
             # ⚡ 交易失败，也保存对话记录
             self._save_conversation_async(analysis, is_executed=False)
@@ -3302,16 +3261,6 @@ class BTCEnhancedBotRaw:
         side = 'buy' if signal == 'OPEN_LONG' else 'sell'
         logger.info(f"🚀 执行开仓: {side.upper()} {size}张")
 
-        # 保存策略日志
-        self.conversation_logger.save_strategy_log(
-            session_id=self.session_id,
-            inst_id=self.inst_id,
-            log_type='trade',
-            log_level='info',
-            message=f"尝试开仓: {side.upper()} {size}张 @{current_price:.2f}",
-            data={'signal': signal, 'confidence': confidence, 'size': size}
-        )
-
         # 调用智能开仓（不使用executor的自动止盈止损）
         result = await self.executor.smart_open_position(
             inst_id=self.inst_id,
@@ -3359,27 +3308,8 @@ class BTCEnhancedBotRaw:
                     self.send_feishu_notification(current_price)
                     break
 
-            # 7. 保存策略日志
-            self.conversation_logger.save_strategy_log(
-                session_id=self.session_id,
-                inst_id=self.inst_id,
-                log_type='trade',
-                log_level='success',
-                message=f"开仓成功: {side.upper()} {size}张",
-                data=result
-            )
         else:
             logger.error(f"❌ 开仓失败: {result.get('error')}")
-
-            # 保存失败日志
-            self.conversation_logger.save_strategy_log(
-                session_id=self.session_id,
-                inst_id=self.inst_id,
-                log_type='trade',
-                log_level='error',
-                message=f"开仓失败: {result.get('error')}",
-                data=result
-            )
 
             # 保存对话记录
             ts = time.time()
@@ -3395,7 +3325,6 @@ class BTCEnhancedBotRaw:
 
     async def run_continuous(self, interval_seconds: float = 60):
         """持续监控模式（双周期版本）"""
-        logger.info("🚀 启动增强版持续监控（双周期：5m+4H）")
         logger.info(f"  检查间隔: {interval_seconds}秒")
         
 
