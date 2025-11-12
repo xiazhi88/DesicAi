@@ -53,6 +53,9 @@ BUILD.md
 AccessKey.txt
 *.key
 *.pem
+static/preview.html
+static/poster.html
+
 
 # Source code (excluded)
 src/
