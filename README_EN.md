@@ -4,28 +4,29 @@
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-> AI-based cryptocurrency quantitative trading system supporting OKX exchange, integrating real-time data collection, AI decision analysis, and automated trade execution.
+> An artificial intelligence-based cryptocurrency quantitative trading system supporting OKX Exchange, integrating real-time data collection, AI decision analysis, and automated trade execution.
 
 English | [简体中文](README.md)
 
 ## ✨ Features
 
-- 🤖 **AI-Driven Decisions**: Support for multiple AI models including Doubao, DeepSeek, Tongyi Qianwen for intelligent market analysis
-- 📊 **Real-time Data Collection**: 24/7 continuous collection of K-line, order book, and tick-by-tick trading data
-- 🎯 **Automated Trading**: Automatic execution of opening/closing positions, take-profit/stop-loss based on AI decisions
-- 🖥️ **Web Management Interface**: Intuitive visual interface for one-click configuration and startup of all components
-- 🔒 **Risk Management**: Multi-layer take-profit/stop-loss strategy, intelligent position management, capital protection
+- 🤖 **AI-Driven Decisions**: Support for multiple AI models including Doubao, DeepSeek, and Qwen for intelligent market analysis
+- 📊 **Real-time Data Collection**: 24/7 continuous collection of candlestick data, order books, and tick-by-tick trades
+- 🎯 **Automated Trading**: Execute opening, closing, take-profit, and stop-loss operations based on AI decisions
+- 🖥️ **Web Management Interface**: Intuitive visual interface for one-click configuration and control of all components
+- 🔒 **Risk Management**: Multi-layer take-profit and stop-loss strategies with intelligent position management
 - 📈 **Multi-Timeframe Analysis**: Combining short-term (5-minute) and long-term (4-hour) multi-dimensional technical indicators
 - 💾 **Data Persistence**: Efficient data storage solution based on MySQL and Redis
-- 🌐 **Proxy Support**: HTTP proxy support, adapted for domestic network environments
+- 🌐 **Proxy Support**: HTTP proxy support for network accessibility
 
 ## 📋 Table of Contents
 
 - [Exchange Registration](#-exchange-registration)
-- [Deployment Services](#-deployment-services)
+- [Deployment Service](#-deployment-service)
 - [System Architecture](#-system-architecture)
+- [Interface Preview](#-interface-preview)
 - [Quick Start](#-quick-start)
-- [Installation & Deployment](#-installation--deployment)
+- [Installation](#-installation)
 - [Configuration](#-configuration)
 - [User Guide](#-user-guide)
 - [FAQ](#-faq)
@@ -35,7 +36,7 @@ English | [简体中文](README.md)
 
 ## 📝 Exchange Registration
 
-Before using this system, you need to register an exchange account. By registering through our exclusive links, you can get trading fee rebates!
+Before using this system, you need to register an exchange account. Register through our exclusive links to get trading fee rebates!
 
 ### OKX Exchange
 
@@ -48,14 +49,14 @@ Before using this system, you need to register an exchange account. By registeri
 - ✅ Trading fee rebates
 - ✅ Good liquidity and depth
 - ✅ Stable and reliable API
-- ✅ Support for multiple contract products
+- ✅ Multiple contract products
 
 **Registration Steps:**
 1. Click the link above to visit the registration page
-2. Register with email/phone number
+2. Enter your email/phone number to register
 3. Complete identity verification (KYC)
-4. Deposit USDT to futures account
-5. Go to **Profile** → **API** → **Create API** to obtain API keys
+4. Deposit USDT to your futures account
+5. Go to **Personal Center** → **API** → **Create API** to get your API keys
 
 ### Binance
 
@@ -71,20 +72,20 @@ Before using this system, you need to register an exchange account. By registeri
 
 **Registration Steps:**
 1. Click the link above to visit the registration page
-2. Register with email/phone number
+2. Enter your email/phone number to register
 3. Complete identity verification (KYC)
-4. Deposit USDT to futures account
+4. Deposit USDT to your futures account
 5. Create API keys in **API Management**
 
-> **Note:** Currently the system mainly supports OKX exchange, Binance support is under development
+> **Note:** Currently, the system primarily supports OKX Exchange. Binance support is under development.
 
 ---
 
-## 💼 Deployment Services
+## 💼 Deployment Service
 
-**For non-technical users, we provide one-on-one deployment services!**
+**For users unfamiliar with technical details, we provide one-on-one deployment services!**
 
-### Service Content
+### Service Contents
 
 - ✅ Complete environment setup (Python + MySQL + Redis)
 - ✅ System configuration and debugging
@@ -93,13 +94,13 @@ Before using this system, you need to register an exchange account. By registeri
 - ✅ Usage training and Q&A
 - ✅ Ongoing technical support
 
-### Contact
+### Contact Information
 
 <div align="center">
 
 **WeChat: lmyc11223344**
 
-*Please note: DesicAI Deployment when adding*
+*Please add a note: DesicAI Deployment*
 
 </div>
 
@@ -111,24 +112,23 @@ DesicAI consists of three core components:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Web Management Interface                 │
-│                      (spa_server.py)                        │
-│        Configuration Management | Monitoring | Control      │
+│                    Web Management Interface                  │
+│                       (spa_server.py)                        │
+│         Configuration | Real-time Monitoring | Control       │
 └──────────────────────┬──────────────────────────────────────┘
                        │
        ┌───────────────┴───────────────┐
        │                               │
 ┌──────▼──────┐              ┌────────▼────────┐
-│ Data         │              │  AI Trading Bot │
-│ Collector    │◄────────────►│ (btc_enhanced_  │
-│ (standalone_ │  Real-time   │  trading_raw)   │
-│  data_       │    Data      │                 │
-│  collector)  │              │                 │
+│Data Collector│              │  AI Trading Bot  │
+│ (standalone_ │◄────────────►│ (btc_enhanced_  │
+│  data_       │  Real-time   │  trading_raw)   │
+│  collector)  │    Data      │                 │
 └──────┬───────┘              └────────┬────────┘
        │                               │
        │  ┌──────────────────────┐     │
        └─►│   MySQL + Redis      │◄────┘
-          │   Data Storage       │
+          │   Storage Layer      │
           └──────────┬───────────┘
                      │
           ┌──────────▼───────────┐
@@ -142,12 +142,12 @@ DesicAI consists of three core components:
 1. **Web Management Interface** (`spa_server.py`)
    - Provides visual configuration and monitoring interface
    - Unified management of bot and data collector start/stop
-   - Real-time display of trading status and history
+   - Real-time display of trading status and historical records
 
 2. **Data Collector** (`standalone_data_collector.py`)
    - 24/7 real-time market data collection
-   - Support for multiple trading pairs and multi-timeframe K-line data
-   - Collection of order book, tick-by-tick trades and depth data
+   - Support for multiple trading pairs and timeframe candlestick data
+   - Collection of order book, tick-by-tick trades, and depth data
    - Data storage to MySQL and Redis
 
 3. **AI Trading Bot** (`examples/enhanced_trading.py`)
@@ -156,21 +156,76 @@ DesicAI consists of three core components:
    - Execute automated trading operations
    - Real-time risk control and position management
 
+## 🎨 Interface Preview
+
+DesicAI provides a modern, intuitive Web management interface that makes trading simple and easy.
+
+<table>
+  <tr>
+    <td width="50%">
+      <h3 align="center">📊 Dashboard</h3>
+      <a href="static/Preview/dashboard.png" target="_blank">
+        <img src="static/Preview/dashboard.png" alt="Dashboard Interface" width="100%">
+      </a>
+      <p align="center"><i>Real-time monitoring of account balance, positions, and profit curves</i></p>
+      <p align="center"><sub>👆 Click image to view full size</sub></p>
+    </td>
+    <td width="50%">
+      <h3 align="center">⚙️ Configuration</h3>
+      <a href="static/Preview/settings.png" target="_blank">
+        <img src="static/Preview/settings.png" alt="Settings Interface" width="100%">
+      </a>
+      <p align="center"><i>Visual configuration of trading parameters, API keys, and AI models</i></p>
+      <p align="center"><sub>👆 Click image to view full size</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3 align="center">📈 Analytics</h3>
+      <a href="static/Preview/analytics.png" target="_blank">
+        <img src="static/Preview/analytics.png" alt="Analytics Interface" width="100%">
+      </a>
+      <p align="center"><i>In-depth analysis of trading performance, historical positions, and AI decisions</i></p>
+      <p align="center"><sub>👆 Click image to view full size</sub></p>
+    </td>
+    <td width="50%">
+      <h3 align="center">🤖 Prompt Management</h3>
+      <a href="static/Preview/prompts.png" target="_blank">
+        <img src="static/Preview/prompts.png" alt="Prompts Interface" width="100%">
+      </a>
+      <p align="center"><i>Flexible management of AI trading strategy prompt templates</i></p>
+      <p align="center"><sub>👆 Click image to view full size</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <h3 align="center">📋 Log Monitoring</h3>
+      <a href="static/Preview/logs.png" target="_blank">
+        <img src="static/Preview/logs.png" alt="Logs Interface" width="50%">
+      </a>
+      <p align="center"><i>Real-time view of trading bot and data collector logs</i></p>
+      <p align="center"><sub>👆 Click image to view full size</sub></p>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.8+
-- OKX exchange account (API enabled)
+- OKX Exchange account (API access required)
 
-### One-Click Startup
+### One-Click Launch
 
 ```bash
-# 1. Clone the project
-git clone https://github.com/yourusername/DesicAI.git
+# 1. Clone the repository
+git clone https://github.com/xiazhi88/DesicAi.git
 cd DesicAI
 
-# 2. Run environment installation script (auto-detects and installs venv, MySQL, Redis, creates .env config)
+# 2. Run environment setup script (auto-detects and installs venv, MySQL, Redis, and creates .env file)
 python setup_environment.py
 
 # 3. Activate virtual environment
@@ -183,11 +238,11 @@ pip install -r requirements.txt
 # 5. Start Web interface
 python spa_server.py
 
-# 6. Open http://localhost:1235 in browser
-# Configure and start data collector and trading bot through Web interface
+# 6. Open http://localhost:1235 in your browser
+# Configure and start the data collector and trading bot via the Web interface
 ```
 
-## 📦 Installation & Deployment
+## 📦 Installation
 
 ### Launch via Web Interface (Recommended)
 
@@ -195,7 +250,7 @@ python spa_server.py
 # Start Web management interface
 python spa_server.py
 
-# Visit in browser
+# Access in browser
 http://localhost:1235
 
 # In the Web interface:
@@ -208,30 +263,30 @@ http://localhost:1235
 
 ### API Configuration
 
-Create API keys on OKX exchange:
+Create API keys on OKX Exchange:
 
-1. Login to [OKX Official Website](https://www.okx.com)
-2. Go to **Profile** → **API** → **Create API**
-3. Set permissions: **Read**, **Trade** (withdrawal permission not needed)
-4. Record `API Key`, `Secret Key`, `Passphrase`
+1. Login to [OKX Official Website](https://www.oyuzh.com/zh-hans/?shortCode=6CngT5)
+2. Go to **Personal Center** → **API** → **Create API**
+3. Set permissions: **Read**, **Trade** (withdrawal permission not required)
+4. Record your `API Key`, `Secret Key`, `Passphrase`
 5. Bind IP whitelist (optional, recommended)
 
 **Configuration Example:**
 
-![API Configuration Process](frontend/apiSet.png)
+![API Configuration Process](static/apiSet.png)
 
 ### AI Model Configuration
 
-The system supports multiple AI models including Doubao, DeepSeek, Tongyi Qianwen. **All configurations can be completed through the Web UI interface**, no need to manually edit configuration files.
+The system supports multiple AI models including Doubao, DeepSeek, and Qwen. **All configurations can be completed through the Web UI interface** without manual editing of configuration files.
 
-Simply select your AI provider in the Web UI and enter the corresponding API Key.
+Simply select your AI provider and enter the corresponding API Key in the Web UI.
 
 ### Proxy Configuration
 
-If you need a proxy to access OKX from China, **you can configure proxy parameters directly in the Web UI interface**:
+If you need a proxy to access OKX, **you can configure proxy parameters directly in the Web UI interface**:
 - Proxy address
 - Proxy port
-- Authentication info (if needed)
+- Authentication information (if required)
 
 ### Trading Parameters
 
@@ -239,9 +294,9 @@ If you need a proxy to access OKX from China, **you can configure proxy paramete
 - Trading instrument (e.g., BTC-USDT-SWAP)
 - Leverage multiplier
 - Data freshness threshold
-- Take-profit/stop-loss settings
+- Take-profit and stop-loss settings
 
-### Feishu Notifications (Optional)
+### Feishu Notification (Optional)
 
 **Feishu notification configuration can also be completed in the Web UI**:
 - Enable/disable Feishu notifications
@@ -251,7 +306,7 @@ If you need a proxy to access OKX from China, **you can configure proxy paramete
 
 ### Web Management Interface
 
-Visit `http://localhost:1235` after startup
+Access `http://localhost:1235` after launching
 
 **Feature List:**
 
@@ -267,8 +322,8 @@ Visit `http://localhost:1235` after startup
    - View running status
 
 3. **Data Monitoring**
-   - Real-time position view
-   - Trading history
+   - Real-time position viewing
+   - Trading history records
    - AI decision logs
    - System operation logs
 
@@ -279,32 +334,32 @@ Visit `http://localhost:1235` after startup
 
 ## ❓ FAQ
 
-### Q1: AI JSON parsing failed
+### Q1: AI returns JSON parsing error
 
 **A:** AI response format may not meet expectations. Check:
 
-1. Is AI model configuration correct
-2. Review complete AI response in logs
-3. Try adjusting `temperature` parameter
+1. Is the AI model configured correctly?
+2. View complete AI response in logs
+3. Try adjusting the `temperature` parameter
 
-### Q2: Trade execution failed
+### Q2: Trade execution failure
 
 **A:** Possible reasons:
 
 1. Insufficient API permissions (trading permission required)
 2. Insufficient balance
-3. Order parameters don't comply with exchange rules
-4. Market volatility causing price deviation
+3. Order parameters do not comply with exchange rules
+4. Price deviation due to market volatility
 
-Check detailed logs: `logs/trading_bot_*.log`
+View detailed logs: `logs/trading_bot_*.log`
 
 ### Q3: Web interface cannot start components
 
 **A:** Check:
 
-1. Port conflicts
-2. Python path is correct
-3. Review Web service logs
+1. Is the port already in use?
+2. Is the Python path correct?
+3. View Web service logs
 
 ## 📄 License
 
@@ -314,25 +369,25 @@ This project is licensed under the [MIT License](LICENSE).
 
 **Important Notice:**
 
-1. This software is for learning and research purposes only, does not constitute investment advice
-2. Cryptocurrency trading carries extremely high risks and may result in total capital loss
+1. This software is for learning and research purposes only and does not constitute investment advice
+2. Cryptocurrency trading carries extremely high risks and may result in total loss of principal
 3. All risks from using this software for live trading are borne by the user
 4. The author is not responsible for any losses caused by using this software
-5. Please use with caution only after fully understanding the risks
+5. Please use with caution after fully understanding the risks
 6. **This project does not support paper trading; all trades are executed in live environment**
 
 **Risk Warning:**
 
-- ⚠️ Leveraged trading carries extremely high risk, may result in liquidation
+- ⚠️ Leveraged trading carries extremely high risk of liquidation
 - ⚠️ AI decisions do not guarantee profits
-- ⚠️ Market volatility may cause huge losses
-- ⚠️ Recommend using only capital you can afford to lose
-- ⚠️ Recommend thorough testing with small amounts first
+- ⚠️ Market volatility may result in significant losses
+- ⚠️ Only use funds you can afford to lose
+- ⚠️ Test thoroughly with small amounts first
 
 ## 📞 Contact Us
 
-- **WeChat**: lmyc11223344 (Deployment services, technical support, note: DesicAI)
-- **GitHub Issues**: [Submit Issue](https://github.com/yourusername/desicAI/issues)
+- **WeChat**: lmyc11223344 (Deployment service, technical support, note: DesicAI)
+- **GitHub Issues**: [Submit Issues](https://github.com/xiazhi88/DesicAi/issues)
 - **Email**: desicai@163.com
 
 **Exchange Registration Referral Links:**
@@ -341,7 +396,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 🙏 Acknowledgments
 
-Thanks to the following open source projects:
+Thanks to the following open-source projects:
 
 - [OKX API](https://www.okx.com/docs-v5/)
 - [Python](https://www.python.org/)
@@ -351,6 +406,6 @@ Thanks to the following open source projects:
 
 ---
 
-**If this project helps you, please give us a ⭐Star⭐ for support!**
+**If this project helps you, please give us a ⭐Star⭐ to support us!**
 
 Made with ❤️ by DesicAI Team
