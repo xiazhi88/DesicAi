@@ -24,6 +24,7 @@
 - [交易所注册](#-交易所注册)
 - [代部署服务](#-代部署服务)
 - [系统架构](#-系统架构)
+- [界面预览](#-界面预览)
 - [快速开始](#-快速开始)
 - [安装部署](#-安装部署)
 - [配置说明](#-配置说明)
@@ -154,6 +155,61 @@ DesicAI 由三个核心组件组成：
    - 调用AI模型进行智能决策分析
    - 执行自动化交易操作
    - 实时风险控制和仓位管理
+
+## 🎨 界面预览
+
+DesicAI 提供了现代化、直观的 Web 管理界面，让交易变得简单易用。
+
+<table>
+  <tr>
+    <td width="50%">
+      <h3 align="center">📊 仪表盘</h3>
+      <a href="static/Preview/dashboard.png" target="_blank">
+        <img src="static/Preview/dashboard.png" alt="仪表盘界面" width="100%">
+      </a>
+      <p align="center"><i>实时监控账户余额、持仓情况和收益曲线</i></p>
+      <p align="center"><sub>👆 点击图片查看大图</sub></p>
+    </td>
+    <td width="50%">
+      <h3 align="center">⚙️ 配置管理</h3>
+      <a href="static/Preview/settings.png" target="_blank">
+        <img src="static/Preview/settings.png" alt="配置界面" width="100%">
+      </a>
+      <p align="center"><i>可视化配置交易参数、API密钥和AI模型</i></p>
+      <p align="center"><sub>👆 点击图片查看大图</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3 align="center">📈 数据分析</h3>
+      <a href="static/Preview/analytics.png" target="_blank">
+        <img src="static/Preview/analytics.png" alt="分析界面" width="100%">
+      </a>
+      <p align="center"><i>深度分析交易表现、查看历史持仓和AI决策记录</i></p>
+      <p align="center"><sub>👆 点击图片查看大图</sub></p>
+    </td>
+    <td width="50%">
+      <h3 align="center">🤖 Prompt管理</h3>
+      <a href="static/Preview/prompts.png" target="_blank">
+        <img src="static/Preview/prompts.png" alt="Prompt管理界面" width="100%">
+      </a>
+      <p align="center"><i>灵活管理AI交易策略的提示词模板</i></p>
+      <p align="center"><sub>👆 点击图片查看大图</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <h3 align="center">📋 日志监控</h3>
+      <a href="static/Preview/logs.png" target="_blank">
+        <img src="static/Preview/logs.png" alt="日志界面" width="50%">
+      </a>
+      <p align="center"><i>实时查看交易机器人和数据采集器的运行日志</i></p>
+      <p align="center"><sub>👆 点击图片查看大图</sub></p>
+    </td>
+  </tr>
+</table>
+
+---
 
 ## 🚀 快速开始
 
