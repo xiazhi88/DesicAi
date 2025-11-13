@@ -298,15 +298,23 @@ class BTCEnhancedBotRaw:
             
             content = "\n".join(content_parts)
 
-            
-            payload = {
-                    "msg_type": "text",
-                    "content": {
-                        "text": content,
-                        "signal": f'{"多仓" if position["posSide"] =="long" else '空仓'} 已平仓',
-                        "inst_id": self.inst_id
-                    }
-                }
+            signal=f'{"多仓" if position["posSide"] =="long" else '空仓'} 已平仓',
+            payload={
+    "msg_type": "post",
+    "content": {
+        "post": {
+            "zh_cn": {
+                "title": f"AI平仓通知 【{signal}】 （{self.inst_id}）",
+                "content": [
+                    [{
+                        "tag": "text",
+                        "text":content
+                    }]
+                ]
+            }
+        }
+    }
+}
 
             # 发送POST请求（设置30秒超时）
             response = requests.post(
@@ -349,7 +357,7 @@ class BTCEnhancedBotRaw:
 
                 # 根据信号类型格式化内容
                 if signal == 'OPEN_LONG':
-                    signal_text = "📈 开多仓"
+                    signal_text = " 开多仓"
                     size = self.analysis.get('size', 0)
 
                     # 从adjust_data提取止盈止损信息
@@ -381,7 +389,7 @@ class BTCEnhancedBotRaw:
                     content = "\n".join(content_parts)
 
                 elif signal == 'OPEN_SHORT':
-                    signal_text = "📉 开空仓"
+                    signal_text = " 开空仓"
                     size = self.analysis.get('size', 0)
 
                     # 从adjust_data提取止盈止损信息
@@ -413,7 +421,7 @@ class BTCEnhancedBotRaw:
                     content = "\n".join(content_parts)
 
                 elif signal == 'ADJUST_STOP':
-                    signal_text = "🔧 调整止盈止损"
+                    signal_text = " 调整止盈止损"
 
                     # 从adjust_data提取止盈止损信息
                     tp_layers = adjust_data.get('take_profit', [])
@@ -445,14 +453,23 @@ class BTCEnhancedBotRaw:
                     return
 
                 # 构造飞书消息格式
-                payload = {
-                    "msg_type": "text",
-                    "content": {
-                        "text": content,
-                        "signal": signal,
-                        "inst_id": self.inst_id
-                    }
-                }
+
+                payload={
+    "msg_type": "post",
+    "content": {
+        "post": {
+            "zh_cn": {
+                "title": f"AI交易通知 【{signal}】 （{self.inst_id}）",
+                "content": [
+                    [{
+                        "tag": "text",
+                        "text":content
+                    }]
+                ]
+            }
+        }
+    }
+}
 
                 # 发送POST请求（设置30秒超时）
                 response = requests.post(
