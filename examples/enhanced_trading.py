@@ -298,7 +298,7 @@ class BTCEnhancedBotRaw:
             
             content = "\n".join(content_parts)
 
-            signal=f'{"多仓" if position["posSide"] =="long" else '空仓'} 已平仓',
+            signal=f'{"多仓" if position["posSide"] =="long" else "空仓"} 已平仓',
             payload={
     "msg_type": "post",
     "content": {
@@ -588,7 +588,7 @@ class BTCEnhancedBotRaw:
                 balance = self.account_api.get_usdt_balance()
                 if balance['success']:
                     # 直接更新，无需锁（float读写基本是原子性的）
-                    self.cached_balance = balance.get('available', 0)
+                    self.cached_balance = balance.get('availEq', 0)
                     self.balance_last_update = datetime.now()
                     logger.debug(f"✓ 余额缓存已更新: {self.cached_balance:.2f} USDT")
                 else:
@@ -3282,7 +3282,7 @@ class BTCEnhancedBotRaw:
         result = await self.executor.smart_open_position(
             inst_id=self.inst_id,
             side=side,
-            size=size,
+            size=str(size),
             leverage=self.leverage,
             auto_stop_orders=False  # 不使用executor的自动止盈止损
         )
