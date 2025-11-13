@@ -29,6 +29,8 @@ class EnvironmentSetup:
         self.env_example_path = Path(".env.example")
         self.env_path = Path(".env")
         self.wheelhouse_path = Path("wheelhouse")
+        self.data_path = Path("data")
+        self.prompts_json_path = self.data_path / "prompts.json"
 
     def get_python_version_tag(self):
         """获取 Python 版本标签 (cp37, cp38, cp39, cp310, cp311, cp312, cp313)"""
@@ -257,6 +259,53 @@ class EnvironmentSetup:
         except subprocess.CalledProcessError as e:
             print(f"命令执行失败: {e}")
             return None
+
+    def check_and_create_data_directory(self):
+        """检测并创建 data 目录和 prompts.json 文件"""
+        self.print_header("检测 data 目录和配置文件")
+
+        # 检查并创建 data 目录
+        if not self.data_path.exists():
+            try:
+                print(f"正在创建 data 目录: {self.data_path.absolute()}")
+                self.data_path.mkdir(parents=True, exist_ok=True)
+                print(f"✓ data 目录创建成功")
+            except Exception as e:
+                print(f"✗ data 目录创建失败: {e}")
+                return False
+        else:
+            print(f"✓ data 目录已存在: {self.data_path.absolute()}")
+
+        # 检查并创建 prompts.json 文件
+        if self.prompts_json_path.exists():
+            print(f"✓ prompts.json 文件已存在: {self.prompts_json_path.absolute()}")
+            return True
+
+        try:
+            print(f"正在创建 prompts.json 文件...")
+
+            # 默认的 prompts 内容
+            default_prompts = [
+                {
+                    "name": "默认Prompt",
+                    "description": "",
+                    "content": """### 1. 核心决策原则（交易哲学）\n\n\n\n* **概率思维**：不追求 "必胜" 交易，承认市场无确定性、仅有概率分布。所有决策均基于风险回报比与成功概率评估，坦然接受合理亏损（交易的必然组成部分）。\n\n* **风险第一**：任何分析前先明确单笔交易的最大潜在损失，严格遵守 "单次亏损不超过预设总资本风险限额" 规则，保护本金为首要职责。\n\n* **边缘捕捉**：聚焦市场微观 / 宏观结构的非均衡状态（源于情绪过度反应、流动性暂时失衡、宏观逻辑驱动的长期趋势等），综合基本面、技率 × 潜在盈利) - (下跌概率 × 潜在亏损)`，做空逻辑相反），仅参与预期价值为正的机会，并持续优化公式变量。\n\n* **复盘优化**：定期回顾过往决策，总结经验教训，修正错误交易逻辑。\n\n### 2. 数据处理与情境感知\n\n将 K 线、Tick 聚合数据等接收信息视为市场深层结构的表层现象，核心任务包括：\n\n\n\n* **解读叙事**：厘清当前市场的主导逻辑与核心驱动因素。\n\n* **识别周期**：判断市场处于趋势、震荡、反转或混乱阶段。\n\n* **感知情绪**：从价格波动、成交量变化中捕捉市场参与者的贪婪与恐惧程度。\n\n* **寻找共鸣 / 背离**：验证不同数据维度的一致性（共鸣）或矛盾性（背离），例如价格创新高但动能指标减弱的背离信号需重点 关注。\n\n### 3. 自主决策框架\n\n基于上述原则与感知，每笔交易决策需提供清晰逻辑链：\n\n\n\n* **【机会阐述】**：详细说明 交易的核心逻辑（如驱动因素、结构特征、机会本质等）。\n\n* **【概率与赔率评估】**：\n\n\n  * 入场合理性：明确当前价位与时机的核心优势（如支撑 / 阻力位、逻辑拐点等）。\n\n  * 成功概率：给出主观概率评估（示例：55%），需基于客观信息推导。\n\n  * 风险回报比：预估潜在盈利与潜在亏损的比例（示例：1:3 以上）。\n\n* **【具体操作建议】**：\n\n\n  * 方向：明确做多 / 做 空 \\[具体交易标的]。\n\n  * 止损：设置具体价位（示例：XX 元），该价位需对应 "核心交易逻辑失效" 的判断标准。\n\n  * 止盈 / 目标：设置具体价位（示例：XX 元），该价位需契合技术目标区、逻辑兑现点或概率优势耗尽的节点。\n\n  * 补充规则：开仓时设定的止盈止损需基于市场分析，无重大特殊情况不得频繁调整；若需调整，必须基于新的市场分析预判，避免因短期波动情绪化操作。\n\n* **【后续预案】**：\n\n\n  * 盈利方向移动：说明如何调整止损以保护已有利润（如移动止损、跟踪止损等具体方式）。\n\n  * 新信息出现：明确调整目标的触发条件（如宏观数据发布、技术形态破位等）。\n\n### 4. 行为禁令（不可逾越规则）\n\n\n\n* 禁止 报复性交易：亏损后不得为 "回本" 进行情绪化、超出常规风险限额的交易。\n\n* 禁止违背止损：止损位触及后必须无条件执行，不得以 "再等等" 为由随意移动止损。\n\n### 5. 整体账户管理\n\n\n\n* 历史持仓：客观分析过往多空交易绩效，识别方向性偏见、风险 控制漏洞等模式。\n\n* 历史决策：复盘过去决策逻辑，判断当初判断是否合理，是否需基于当前认知修正。\n\n* 历史收益：评估收益是否达成目标，分析亏损原因（判断失误 / 执行偏差）、盈利是否未达预期（提前离场 / 目标设置不合理），明确改进空间。\n\n### 6. 持仓条件（持续持有需满足）\n\n\n\n* 多空视角下的核心交易逻辑仍有效。\n\n* 市场未出现损害当前头寸方向的重大变化（如核 心驱动因素消失、基本面反转等）。\n\n* 重新评估多空风险后，仍支持当前持仓方向。\n\n### 7. 思考模型：强制应用框架\n\n每次 响应前，必须按以下顺序完成分析步骤：\n\n\n\n1. 独立思考：拒绝盲从市场共识，仅基于实时数据与核心逻辑形成独立观点。\n\n2. 多维度验证：动态权衡以下因素的重要性（无需平等对待）：\n\n* 价格行为与技术信号（支撑 / 阻力、动量指标、形态结构等）；\n\n* 市场微观结构（流动性分布、订单簿深度、买卖盘力量等）；\n\n* 多空力量对比（资金费率、未平仓合约变化、大额成交方向等） ；\n\n* 系统风险（波动率突变、资产相关性破裂、黑天鹅事件等）。\n\n1. 证伪思维：主动寻找推翻当前判断的反证（如看多则排查 隐藏看空信号，看空则排查隐藏看多信号）。\n\n2. 概率思维：所有决策需基于 0-100 的置信度评估，无确定性机会；多空置信度需依托客观证据权重，避免方向性偏见。\n\n3. 持续学习：参考历史决策、市场变化及持仓复盘结论，但不过度依赖过往模式（需结合实时 市场动态调整）。\n\n4. 避免过度调整：拒绝频繁变动仓位或交易参数，耐心等待市场逻辑兑现；若当前无持仓，基于新分析独立决策 ；无需调整时明确给出 "HOLD" 信号。\n\n5. 开仓方向：支持做多与做空，两者适用完全一致的风险管理标准。\n\n'""",
+                    "created_at": "2025-11-09 15:20:27",
+                    "updated_at": "2025-11-09 16:49:28"
+                }
+            ]
+
+            # 写入 JSON 文件
+            import json
+            with open(self.prompts_json_path, 'w', encoding='utf-8') as f:
+                json.dump(default_prompts, f, ensure_ascii=False, indent=2)
+
+            print(f"✓ prompts.json 文件创建成功: {self.prompts_json_path.absolute()}")
+            return True
+
+        except Exception as e:
+            print(f"✗ prompts.json 文件创建失败: {e}")
+            return False
 
     def check_and_create_env_file(self):
         """检测并创建 .env 配置文件"""
@@ -721,15 +770,18 @@ class EnvironmentSetup:
             print("  本脚本仅支持 Windows 和 Ubuntu/Linux 系统")
             return False
 
-        # 1. 检测并创建 .env 配置文件
+        # 1. 检测并创建 data 目录和 prompts.json
+        self.check_and_create_data_directory()
+
+        # 2. 检测并创建 .env 配置文件
         self.check_and_create_env_file()
 
-        # 2. 检测并创建 venv
+        # 3. 检测并创建 venv
         if not self.check_venv():
             if not self.create_venv():
                 print("\n⚠ 虚拟环境创建失败，但继续执行其他配置...")
 
-        # 3. 检测并安装 MySQL
+        # 4. 检测并安装 MySQL
         mysql_installed = self.check_mysql()
         if not mysql_installed:
             if self.is_windows:
@@ -737,12 +789,12 @@ class EnvironmentSetup:
             else:
                 mysql_installed = self.install_mysql_linux()
 
-        # 4. 创建 MySQL 数据库
+        # 5. 创建 MySQL 数据库
         if mysql_installed:
             self.create_mysql_database()
             self.print_mysql_password_change_guide()
 
-        # 5. 检测并安装 Redis
+        # 6. 检测并安装 Redis
         redis_installed = self.check_redis()
         if not redis_installed:
             if self.is_windows:
@@ -750,7 +802,7 @@ class EnvironmentSetup:
             else:
                 redis_installed = self.install_redis_linux()
 
-        # 6. 安装 Trade 加密模块
+        # 7. 安装 Trade 加密模块
         trade_installed = self.install_trade_wheel()
 
         # 打印最终总结
