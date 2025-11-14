@@ -277,6 +277,10 @@ cd DesicAI
 # 2. 运行环境安装脚本（自动检测并安装 venv、MySQL、Redis，创建 .env 配置文件）
 python setup_environment.py
 
+#如果提示MYSQL或者Redis 未安装，根据流程安装后重新运行 
+#python setup_environment.py
+
+
 # 3. 激活虚拟环境
 venv\Scripts\activate  # Windows
 source venv/bin/activate  # Linux/macOS
@@ -289,7 +293,14 @@ python spa_server.py
 
 # 6. 在浏览器中打开 http://localhost:1235
 # 通过 Web 界面配置并启动数据采集器和交易机器人
+
 ```
+#### 注意
+首次运行在web ui中配置好Mysql后应重新启动
+python spa_server.py
+即可正常使用
+![Mysql配置](static/mysqlSet.png)
+
 
 ## 📦 安装部署
 
