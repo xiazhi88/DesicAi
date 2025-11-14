@@ -131,7 +131,6 @@ class EnvironmentSetup:
 
     def install_trade_wheel(self):
         """自动检测并安装对应的 trade.py wheel 包"""
-        self.print_header("检测并安装 Trade 加密模块")
 
         # 检查 wheelhouse 目录是否存在
         if not self.wheelhouse_path.exists():
@@ -211,7 +210,6 @@ class EnvironmentSetup:
             result = self.run_command(install_cmd, check=False, capture_output=True)
 
             if result and result.returncode == 0:
-                print(f"\n✓ Trade 加密模块安装成功!")
 
                 # 验证安装
                 print(f"\n验证安装...")
@@ -802,7 +800,6 @@ class EnvironmentSetup:
             else:
                 redis_installed = self.install_redis_linux()
 
-        # 7. 安装 Trade 加密模块
         trade_installed = self.install_trade_wheel()
 
         # 打印最终总结
@@ -810,7 +807,6 @@ class EnvironmentSetup:
         print(f"\n✓ Python 虚拟环境: {self.venv_path.absolute()}")
         print(f"  MySQL 状态: {'已安装' if mysql_installed else '需要手动安装'}")
         print(f"  Redis 状态: {'已安装' if redis_installed else '需要手动安装'}")
-        print(f"  Trade 加密模块: {'已安装' if trade_installed else '未安装或跳过'}")
 
         if mysql_installed:
             print(f"\n  MySQL 配置:")
