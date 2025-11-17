@@ -88,12 +88,14 @@ class EnvironmentSetup:
         if not platform_tag:
             return None
 
-        # 构建搜索模式 (支持新旧包名)
+        # 构建搜索模式 (支持新旧包名，大小写变体)
         # 新格式: DesicAi_okx-0.1.0-cp311-cp311-win_amd64.whl
+        # 规范化后: desicai_okx-0.1.0-cp311-cp311-win_amd64.whl (setuptools 会转为小写)
         # 旧格式: aiquant_trade-0.1.0-cp311-cp311-win_amd64.whl
         patterns = [
-            f"DesicAi_okx-*-{py_tag}-{py_tag}-{platform_tag}.whl",
-            f"aiquant_trade-*-{py_tag}-{py_tag}-{platform_tag}.whl"  # 兼容旧版本
+            f"desicai_okx-*-{py_tag}-{py_tag}-{platform_tag}.whl",  # 小写（实际生成的）
+            f"DesicAi_okx-*-{py_tag}-{py_tag}-{platform_tag}.whl",  # 驼峰（兼容）
+            f"aiquant_trade-*-{py_tag}-{py_tag}-{platform_tag}.whl"  # 旧版本
         ]
 
         matching_files = []
@@ -107,8 +109,9 @@ class EnvironmentSetup:
 
         # 如果没找到，尝试模糊匹配（处理 manylinux/macosx 等复杂标签）
         if not matching_files:
-            # 尝试更宽松的匹配
+            # 尝试更宽松的匹配（包含大小写变体）
             all_wheels = (
+                list(self.wheelhouse_path.glob(f"desicai_okx-*-{py_tag}-*.whl")) +  # 小写（优先）
                 list(self.wheelhouse_path.glob(f"DesicAi_okx-*-{py_tag}-*.whl")) +
                 list(self.wheelhouse_path.glob(f"aiquant_trade-*-{py_tag}-*.whl"))
             )
@@ -142,10 +145,11 @@ class EnvironmentSetup:
             print("  跳过 Trade 模块安装")
             return False
 
-        # 列出所有可用的 wheel (支持两种包名)
+        # 列出所有可用的 wheel (支持多种包名和大小写变体)
         all_wheels = (
-            list(self.wheelhouse_path.glob("DesicAi_okx-*.whl")) +
-            list(self.wheelhouse_path.glob("aiquant_trade-*.whl"))  # 兼容旧版本
+            list(self.wheelhouse_path.glob("desicai_okx-*.whl")) +  # 小写（实际生成的）
+            list(self.wheelhouse_path.glob("DesicAi_okx-*.whl")) +  # 驼峰（兼容）
+            list(self.wheelhouse_path.glob("aiquant_trade-*.whl"))  # 旧版本
         )
         if all_wheels:
             print(f"\n找到 {len(all_wheels)} 个 wheel 包:")

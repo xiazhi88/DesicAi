@@ -19,10 +19,14 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-pyproject.toml
-setup.py
-BUILD.md
 MANIFEST
+
+# Build configuration files (not needed in repo)
+setup.py
+pyproject.toml
+build_local.py
+BUILD.md
+MANIFEST.in
 
 # Virtual Environment
 venv/
@@ -43,12 +47,6 @@ env/
 .env
 .env.local
 *.env
-fix_wheel.py
-check_wheel.py
-/setup.py
-build_local.py
-MANIFEST.in
-BUILD.md
 
 AccessKey.txt
 *.key
@@ -65,7 +63,6 @@ src/
 logs/
 *.log
 update_wheel.py
-
 
 # Database
 *.sqlite
@@ -119,3 +116,10 @@ AIQuantLauncher/
 *.tmp
 *.temp
 *.bak
+
+# Build/test scripts (temporary)
+test_*.py
+*_wsl_*.sh
+fix_wheel.py
+check_wheel.py
+update_wheel.py
