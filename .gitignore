@@ -38,6 +38,7 @@ env/
 .vscode/
 .idea/
 *.swp
+build_linux.bat
 
 *.swo
 *~
