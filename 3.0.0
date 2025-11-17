@@ -1,0 +1,6 @@
+Looking in indexes: https://pypi.tuna.tsinghua.edu.cn/simple, https://pypi.ngc.nvidia.com
+Collecting Cython
+  Downloading https://pypi.tuna.tsinghua.edu.cn/packages/86/dc/d72dbb2f8e7ca95d2d18fd86f32b2e385996576230e7ecddd7d250786825/cython-3.2.1-cp314-cp314-win_amd64.whl (2.8 MB)
+     ---------------------------------------- 2.8/2.8 MB 42.6 MB/s  0:00:00
+Installing collected packages: Cython
+Successfully installed Cython-3.2.1
