@@ -38,3 +38,4 @@ cryptography>=3.4.0
 # Web 框架
 fastapi>=0.68.0
 uvicorn>=0.15.0
+DBUtils

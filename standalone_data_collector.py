@@ -85,9 +85,10 @@ class StandaloneDataCollector:
         self.ws_public: OkxWebSocket = None
         self.ws_business: OkxWebSocket = None
 
-        # 线程池（增加工作线程数，支持并发数据处理）
-        self.executor = ThreadPoolExecutor(max_workers=500, thread_name_prefix="ws")
-        # 2个WebSocket连接线程 + 4个数据处理线程
+        # 线程池（减小工作线程数，避免MySQL连接数过多）
+        self.executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="ws")
+        self.executor_redis = ThreadPoolExecutor(max_workers=500, thread_name_prefix="ws")
+        # 2个WebSocket连接线程 + 数据处理线程（避免Too many connections）
 
         # 内存缓冲
         self.trades_buffer = {sym: deque(maxlen=1000) for sym in self.symbols}
@@ -296,7 +297,8 @@ class StandaloneDataCollector:
                 channel = data['arg'].get('channel', '')
                 inst_id = data['arg'].get('instId', '')
                 if channel =='trades-all':
-                    self.executor.submit(self._process_trade, inst_id, data['data'])
+                    self.executor_redis.submit(self._process_trade, inst_id, data['data'])
+
                 # 从channel中提取timeframe
                 if channel.startswith('candle'):
                     timeframe = channel.replace('candle', '')

@@ -28,12 +28,17 @@ build_local.py
 BUILD.md
 MANIFEST.in
 
+# Environment installer build artifacts
+environment_installer/build/
+environment_installer/dist/
+environment_installer/logo.ico
+
 # Virtual Environment
 venv/
 ENV/
 env/
 .venv
-
+environment_installer/
 # IDE
 .vscode/
 .idea/

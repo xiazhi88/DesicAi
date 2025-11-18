@@ -3434,7 +3434,10 @@ async def main():
 
 
 if __name__ == '__main__':
-    # 配置日志输出
+    PID_FILE = os.path.join(project_root, "data", "bot.pid")
+    with open(PID_FILE, 'w') as f:
+        f.write(str(os.getpid()))
+    # 配置日志输出 
     logger.remove()  # 移除默认处理器
     logger.add(
         sys.stderr,
@@ -3450,8 +3453,5 @@ if __name__ == '__main__':
         level="INFO"
     )
     logger.info(f"Bot PID: {os.getpid()}")
-    PID_FILE = os.path.join(project_root, "data", "bot.pid")
 
-    with open(PID_FILE, 'w') as f:
-        f.write(str(os.getpid()))
     asyncio.run(main())
