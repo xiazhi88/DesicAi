@@ -411,6 +411,17 @@ This project is licensed under the [MIT License](LICENSE).
 - **GitHub Issues**: [Submit Issues](https://github.com/xiazhi88/DesicAi/issues)
 - **Email**: desicai@163.com
 
+### 💬 DesicAI Community Group
+
+Scan the QR code to join the DesicAI Feishu community group and exchange experiences with other users!
+
+<div align="center">
+  <img src="static/feishu.png" alt="DesicAI Community Group" width="400">
+  <p><i>Scan QR code to join DesicAI Community Group</i></p>
+</div>
+
+---
+
 **Exchange Registration Referral Links:**
 - OKX: https://www.oyuzh.com/zh-hans/join/xiazhi?shortCode=6CngT5
 - Binance: https://www.binance.com/join?ref=XAZHI

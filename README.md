@@ -474,6 +474,17 @@ http://localhost:1235
 - **GitHub Issues**: [提交问题](https://github.com/xiazhi88/DesicAi/issues)
 - **Email**: desicai@163.com
 
+### 💬 DesicAI 交流群
+
+扫描二维码加入 DesicAI 飞书交流群，与其他用户交流使用经验、分享交易策略！
+
+<div align="center">
+  <img src="static/feishu.png" alt="DesicAI交流群" width="400">
+  <p><i>扫描二维码加入 DesicAI 交流群</i></p>
+</div>
+
+---
+
 **交易所注册返佣链接：**
 - OKX: https://www.oyuzh.com/zh-hans/join/xiazhi?shortCode=6CngT5
 - Binance: https://www.binance.com/join?ref=XAZHI
