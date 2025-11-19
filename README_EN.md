@@ -213,12 +213,33 @@ DesicAI provides a modern, intuitive Web management interface that makes trading
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Method 1: Windows One-Click Installer (Recommended)
+
+**Perfect for users unfamiliar with command line - download and go!**
+
+1. Visit [GitHub Releases](https://github.com/xiazhi88/DesicAi/releases)
+2. Download the latest `DesicAiInstaller.exe`
+3. Double-click to run the installer and follow the prompts
+4. The Web management interface will launch automatically after installation
+5. Access `http://localhost:1235` in your browser to start configuration
+
+**One-Click Installer Features:**
+- ✅ Automatic Python environment setup
+- ✅ Automatic MySQL and Redis configuration
+- ✅ Automatic dependency installation
+- ✅ One-click Web interface launch
+- ✅ No command line operations required
+
+---
+
+### Method 2: Manual Deployment (Developers)
+
+#### Prerequisites
 
 - Python 3.8+
 - OKX Exchange account (API access required)
 
-### One-Click Launch
+#### Installation Steps
 
 ```bash
 # 1. Clone the repository
