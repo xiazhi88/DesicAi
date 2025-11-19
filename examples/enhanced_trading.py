@@ -122,13 +122,21 @@ class BTCEnhancedBotRaw:
         if not config.is_configured():
             raise ValueError("请先在.env文件中配置API密钥")
 
+        # 构建代理配置
+        proxy_url = None
+        if config.PROXY_ENABLED:
+            if config.PROXY_USERNAME and config.PROXY_PASSWORD:
+                proxy_url = f'{config.PROXY_TYPE}://{config.PROXY_USERNAME}:{config.PROXY_PASSWORD}@{config.PROXY_HOST}:{config.PROXY_PORT}'
+            else:
+                proxy_url = f'{config.PROXY_TYPE}://{config.PROXY_HOST}:{config.PROXY_PORT}'
+
         self.client = OKXRestClient(
             api_key=config.API_KEY,
             secret_key=config.SECRET_KEY,
             passphrase=config.PASSPHRASE,
             is_demo=config.IS_DEMO,
             use_proxy=config.PROXY_ENABLED,
-            proxy=f'http://{config.PROXY_USERNAME}:{config.PROXY_PASSWORD}@{config.PROXY_HOST}:{config.PROXY_PORT}' if config.PROXY_USERNAME else f'http://{config.PROXY_HOST}:{config.PROXY_PORT}' 
+            proxy=proxy_url
         )
 
         self.trade_api = TradeAPI(self.client)
