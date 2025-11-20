@@ -38,6 +38,7 @@ venv/
 ENV/
 env/
 .venv
+NUL
 environment_installer/
 # IDE
 .vscode/
