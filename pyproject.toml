@@ -14,7 +14,7 @@ test-command = "python -c \"from src.api.trade import TradeAPI; print('TradeAPI 
 archs = ["x86_64"]
 
 [tool.cibuildwheel.windows]
-archs = ["AMD64", "x86"]
+archs = ["AMD64"]
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
