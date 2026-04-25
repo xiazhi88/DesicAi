@@ -15,22 +15,27 @@ import subprocess
 import platform
 import shutil
 import glob
+import zipfile
 from pathlib import Path
 
 
 class EnvironmentSetup:
     def __init__(self):
+        self.project_root = Path(__file__).resolve().parent
+        os.chdir(self.project_root)
         self.system = platform.system().lower()
         self.is_windows = self.system == "windows"
         self.is_linux = self.system == "linux"
-        self.venv_path = Path("venv")
+        self.venv_path = self.project_root / "venv"
         self.mysql_password = "123456789"
         self.db_name = "trading_data"
-        self.env_example_path = Path(".env.example")
-        self.env_path = Path(".env")
-        self.wheelhouse_path = Path("wheelhouse")
-        self.data_path = Path("data")
+        self.env_example_path = self.project_root / ".env.example"
+        self.env_path = self.project_root / ".env"
+        self.wheelhouse_path = self.project_root / "wheelhouse"
+        self.src_path = self.project_root / "src"
+        self.data_path = self.project_root / "data"
         self.prompts_json_path = self.data_path / "prompts.json"
+        self.port = "3306"
 
     def get_python_version_tag(self):
         """获取 Python 版本标签 (cp37, cp38, cp39, cp310, cp311, cp312, cp313)"""
@@ -51,12 +56,13 @@ class EnvironmentSetup:
             arch = machine
 
         if system == 'windows':
-            if arch == 'x86_64':
+            # Windows 上 platform.machine() 返回的是系统架构，不一定是当前 Python
+            # 解释器架构。32 位 Python 只能安装 win32 wheel。
+            is_64bit_python = sys.maxsize > 2**32
+            if is_64bit_python:
                 return 'win_amd64'
-            elif arch == 'arm64':
-                return 'win_arm64'
             else:
-                return f'win_{arch}'
+                return 'win32'
         elif system == 'linux':
             # Linux 通常使用 manylinux 标签
             if arch == 'x86_64':
@@ -121,7 +127,8 @@ class EnvironmentSetup:
                 wheel_name = wheel.name.lower()
 
                 if self.is_windows and 'win' in wheel_name:
-                    if 'amd64' in wheel_name or 'win_amd64' in wheel_name:
+                    expected = self.get_platform_tag()
+                    if expected and expected in wheel_name:
                         return wheel
                 elif self.is_linux and ('linux' in wheel_name or 'manylinux' in wheel_name):
                     if 'x86_64' in wheel_name or 'aarch64' in wheel_name:
@@ -131,6 +138,108 @@ class EnvironmentSetup:
                         return wheel
 
         return None
+
+    def get_venv_python(self):
+        """返回虚拟环境 Python 路径；如果不存在则回退到当前 Python。"""
+        if self.is_windows:
+            python_path = self.venv_path / "Scripts" / "python.exe"
+        else:
+            python_path = self.venv_path / "bin" / "python"
+        return python_path if python_path.exists() else Path(sys.executable)
+
+    def get_venv_pip_command(self):
+        """返回可安全执行的 pip 命令列表。"""
+        python_path = self.get_venv_python()
+        return [str(python_path), "-m", "pip"]
+
+    def run_process(self, args, check=False, capture_output=False):
+        """执行不经过 shell 的命令，避免 Windows 路径空格和引号问题。"""
+        try:
+            return subprocess.run(
+                args,
+                check=check,
+                capture_output=capture_output,
+                text=True,
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"命令执行失败: {e}")
+            return e
+
+    def install_python_requirements(self):
+        """安装 requirements.txt 中的 Python 依赖。"""
+        requirements_path = self.project_root / "requirements.txt"
+        if not requirements_path.exists():
+            print("  未找到 requirements.txt，跳过依赖安装")
+            return True
+
+        print("\n正在安装 Python 依赖...")
+        pip_cmd = self.get_venv_pip_command()
+        print(f"  使用 Python: {self.get_venv_python()}")
+
+        upgrade_result = self.run_process(
+            pip_cmd + ["install", "--upgrade", "pip", "setuptools", "wheel"],
+            check=False,
+            capture_output=True,
+        )
+        if upgrade_result and upgrade_result.returncode != 0:
+            print("  警告: pip 基础工具升级失败，继续尝试安装依赖")
+
+        result = self.run_process(
+            pip_cmd + ["install", "-r", str(requirements_path)],
+            check=False,
+            capture_output=True,
+        )
+        if result and result.returncode == 0:
+            print("✓ Python 依赖安装完成")
+            return True
+
+        print("✗ Python 依赖安装失败")
+        if result and result.stderr:
+            for line in result.stderr.splitlines()[-12:]:
+                if line.strip():
+                    print(f"  {line}")
+        return False
+
+    def install_trade_binary_from_wheel(self, wheel_file):
+        """从 wheel 中复制平台匹配的加密 Trade 扩展到本地 src/api。"""
+        try:
+            print("\n正在安装本地 Trade 加密模块...")
+            api_path = self.src_path / "api"
+            if not api_path.exists():
+                print(f"✗ src/api 目录不存在: {api_path}")
+                print("  请确认当前 GitHub 源码包含 src 目录后重新运行安装脚本")
+                return False
+
+            with zipfile.ZipFile(wheel_file) as wheel:
+                trade_members = [
+                    info for info in wheel.infolist()
+                    if (
+                        info.filename.startswith("src/api/")
+                        and not info.is_dir()
+                        and Path(info.filename).suffix.lower() in {".pyd", ".so"}
+                        and Path(info.filename).name.startswith(("trade.", "_trade."))
+                    )
+                ]
+                if not trade_members:
+                    print("✗ wheel 包内未找到 Trade 加密模块")
+                    return False
+
+                for stale in list(api_path.glob("trade.*.pyd")) + list(api_path.glob("trade.*.so")):
+                    stale.unlink(missing_ok=True)
+                for stale in list(api_path.glob("_trade.*.pyd")) + list(api_path.glob("_trade.*.so")):
+                    stale.unlink(missing_ok=True)
+
+                for info in trade_members:
+                    target = api_path / Path(info.filename).name
+                    with wheel.open(info) as source, open(target, "wb") as dest:
+                        shutil.copyfileobj(source, dest)
+                    print(f"  已安装: {target.name}")
+
+            print(f"✓ Trade 加密模块安装成功: {api_path}")
+            return True
+        except Exception as e:
+            print(f"✗ Trade 加密模块安装失败: {e}")
+            return False
 
     def install_trade_wheel(self):
         """自动检测并安装对应的 trade.py wheel 包"""
@@ -185,46 +294,50 @@ class EnvironmentSetup:
         try:
             print(f"\n正在安装 wheel 包...")
 
-            # 确定 pip 命令
-            if self.venv_path.exists():
-                # 如果虚拟环境存在，使用虚拟环境的 pip
-                if self.is_windows:
-                    pip_cmd = str(self.venv_path / "Scripts" / "pip.exe")
-                else:
-                    pip_cmd = str(self.venv_path / "bin" / "pip")
+            pip_cmd = self.get_venv_pip_command()
+            python_cmd = str(self.get_venv_python())
+            print(f"  使用 Python: {python_cmd}")
 
-                # 检查 pip 是否存在
-                if not Path(pip_cmd).exists():
-                    print(f"  警告: 虚拟环境 pip 不存在，使用系统 pip")
-                    pip_cmd = f"{sys.executable} -m pip"
-            else:
-                # 否则使用系统 pip
-                pip_cmd = f"{sys.executable} -m pip"
-
-            print(f"  使用 pip: {pip_cmd}")
-
-            # 执行安装命令（先安装依赖）
-            print(f"  安装依赖...")
-            deps_cmd = f'{pip_cmd} install -q requests pandas numpy loguru'
-            self.run_command(deps_cmd, check=False, capture_output=True)
+            # 执行安装命令（先安装基础依赖）
+            print(f"  安装基础依赖...")
+            self.run_process(
+                pip_cmd + ["install", "-q", "requests", "pandas", "numpy", "loguru"],
+                check=False,
+                capture_output=True,
+            )
 
             # 安装 wheel
             print(f"  安装 DesicAi-okx...")
-            install_cmd = f'{pip_cmd} install --force-reinstall "{wheel_file.absolute()}"'
-            result = self.run_command(install_cmd, check=False, capture_output=True)
+            result = self.run_process(
+                pip_cmd + ["install", "--force-reinstall", str(wheel_file.absolute())],
+                check=False,
+                capture_output=True,
+            )
 
             if result and result.returncode == 0:
+                self.install_trade_binary_from_wheel(wheel_file)
 
                 # 验证安装
                 print(f"\n验证安装...")
-                verify_cmd = f'{sys.executable} -c "from src.api.trade import TradeAPI; print(\\\"✓ 导入成功\\\")"'
-                verify_result = self.run_command(verify_cmd, check=False, capture_output=True)
+                verify_result = self.run_process(
+                    [
+                        python_cmd,
+                        "-c",
+                        "from src.api.trade import TradeAPI; print('✓ 导入成功')",
+                    ],
+                    check=False,
+                    capture_output=True,
+                )
 
                 if verify_result and verify_result.returncode == 0:
                     print(verify_result.stdout.strip())
                     print(f"✓ Trade 模块验证通过!")
                 else:
                     print(f"  警告: 导入测试失败，但模块已安装")
+                    if verify_result and verify_result.stderr:
+                        for line in verify_result.stderr.splitlines()[-8:]:
+                            if line.strip():
+                                print(f"    {line}")
 
                 return True
             else:
@@ -783,7 +896,10 @@ class EnvironmentSetup:
             if not self.create_venv():
                 print("\n⚠ 虚拟环境创建失败，但继续执行其他配置...")
 
-        # 4. 检测并安装 MySQL
+        # 4. 安装 Python 依赖
+        self.install_python_requirements()
+
+        # 5. 检测并安装 MySQL
         mysql_installed = self.check_mysql()
         if not mysql_installed:
             if self.is_windows:
@@ -791,12 +907,12 @@ class EnvironmentSetup:
             else:
                 mysql_installed = self.install_mysql_linux()
 
-        # 5. 创建 MySQL 数据库
+        # 6. 创建 MySQL 数据库
         if mysql_installed:
             self.create_mysql_database()
             self.print_mysql_password_change_guide()
 
-        # 6. 检测并安装 Redis
+        # 7. 检测并安装 Redis
         redis_installed = self.check_redis()
         if not redis_installed:
             if self.is_windows:
@@ -804,11 +920,14 @@ class EnvironmentSetup:
             else:
                 redis_installed = self.install_redis_linux()
 
+        # 8. 安装 wheel 并复制平台匹配的 Trade 加密模块
         trade_installed = self.install_trade_wheel()
 
         # 打印最终总结
         self.print_header("环境配置总结")
         print(f"\n✓ Python 虚拟环境: {self.venv_path.absolute()}")
+        print(f"  src 源码目录: {'已存在' if self.src_path.exists() else '缺失'}")
+        print(f"  Trade 模块: {'已安装' if trade_installed else '需要检查 wheel 包'}")
         print(f"  MySQL 状态: {'已安装' if mysql_installed else '需要手动安装'}")
         print(f"  Redis 状态: {'已安装' if redis_installed else '需要手动安装'}")
 

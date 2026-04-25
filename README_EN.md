@@ -246,20 +246,18 @@ DesicAI provides a modern, intuitive Web management interface that makes trading
 git clone https://github.com/xiazhi88/DesicAi.git
 cd DesicAI
 
-# 2. Run environment setup script (auto-detects and installs venv, MySQL, Redis, and creates .env file)
+# 2. Run environment setup script
+# Automatically creates venv, installs Python dependencies, installs the matching protected Trade module, checks MySQL/Redis, and creates .env
 python setup_environment.py
 
 # 3. Activate virtual environment
 venv\Scripts\activate  # Windows
 source venv/bin/activate  # Linux/macOS
 
-# 4. Install Python dependencies
-pip install -r requirements.txt
-
-# 5. Start Web interface
+# 4. Start Web interface
 python spa_server.py
 
-# 6. Open http://localhost:1235 in your browser
+# 5. Open http://localhost:1235 in your browser
 # Configure and start the data collector and trading bot via the Web interface
 ```
 
@@ -280,6 +278,34 @@ http://localhost:1235
 # 3. Click "Start Trading Bot"
 ```
 
+## 🔐 Protected Trade Module Release
+
+`src/api/trade.py` in the public source tree is only a loader. The real trade implementation is built by GitHub Actions with `cibuildwheel` into platform-specific protected extension modules:
+
+- Windows: `.pyd`
+- Linux/macOS: `.so`
+- Python versions and CPU architectures are handled by the `cibuildwheel` matrix
+
+Before building, add a repository secret:
+
+```bash
+# macOS
+base64 -i /Users/xiazhi/trade.py | pbcopy
+
+# Linux
+base64 -w 0 /path/to/trade.py
+```
+
+Save the output as the repository secret `TRADE_PY_B64`.
+
+Then run **Build protected trade wheels** in GitHub Actions. Upload the generated wheels to `wheelhouse/` or GitHub Releases. Users only need to run:
+
+```bash
+python setup_environment.py
+```
+
+The script automatically selects the wheel matching the current OS and Python version, then installs the protected Trade module into `src/api/`.
+
 ## ⚙️ Configuration
 
 ### API Configuration
@@ -298,9 +324,14 @@ Create API keys on OKX Exchange:
 
 ### AI Model Configuration
 
-The system supports multiple AI models including Doubao, DeepSeek, and Qwen. **All configurations can be completed through the Web UI interface** without manual editing of configuration files.
+The system supports Doubao, DeepSeek, Qwen, and custom OpenAI-compatible model providers. **All configurations can be completed through the Web UI interface** without manual editing of configuration files.
 
 Simply select your AI provider and enter the corresponding API Key in the Web UI.
+
+When selecting **Other**, fill in:
+- API endpoint: for example `https://api.openai.com/v1`; do not include `/chat/completions`
+- Model name: for example `gpt-4o-mini`
+- API Key: the key from your provider
 
 ### Proxy Configuration
 
@@ -381,6 +412,18 @@ View detailed logs: `logs/trading_bot_*.log`
 1. Is the port already in use?
 2. Is the Python path correct?
 3. View Web service logs
+
+### Q4: Order placement reports `All operations failed`
+
+**A:** In most cases, the OKX position mode does not match the bot. Open OKX:
+
+1. Go to the **trading screen**
+2. Tap the **three dots** in the top-right corner
+3. Open **Trading settings**
+4. Find **Position mode**
+5. Change it to **Hedge mode / 双向持仓**
+
+![OKX hedge mode setup guide](static/okx-position-mode-guide.png)
 
 ## 📄 License
 

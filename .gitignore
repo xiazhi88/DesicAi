@@ -21,12 +21,9 @@ wheels/
 *.egg
 MANIFEST
 
-# Build configuration files (not needed in repo)
-setup.py
-pyproject.toml
+# Local/private build helpers
 build_local.py
-BUILD.md
-MANIFEST.in
+build_private/
 
 # Environment installer build artifacts
 environment_installer/build/
@@ -62,8 +59,14 @@ static/preview.html
 static/poster.html
 
 
-# Source code (excluded)
-src/
+# Protected trade source and compiled modules
+src/api/_trade.py
+src/api/_trade*.c
+src/api/_trade*.cpp
+src/api/_trade*.so
+src/api/_trade*.pyd
+src/api/trade*.so
+src/api/trade*.pyd
 
 
 # Logs
