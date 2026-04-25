@@ -295,7 +295,8 @@ DesicAI 提供了现代化、直观的 Web 管理界面，让交易变得简单�
 git clone https://github.com/xiazhi88/DesicAi.git
 cd DesicAI
 
-# 2. 运行环境安装脚本（自动检测并安装 venv、MySQL、Redis，创建 .env 配置文件）
+# 2. 运行环境安装脚本
+# 自动创建 venv、安装 Python 依赖、安装匹配的加密 Trade 模块、检测 MySQL/Redis、创建 .env 配置文件
 python setup_environment.py
 
 #如果提示MYSQL或者Redis 未安装，根据流程安装后重新运行 
@@ -306,13 +307,10 @@ python setup_environment.py
 venv\Scripts\activate  # Windows
 source venv/bin/activate  # Linux/macOS
 
-# 4. 安装 Python 依赖
-pip install -r requirements.txt
-
-# 5. 启动 Web 界面
+# 4. 启动 Web 界面
 python spa_server.py
 
-# 6. 在浏览器中打开 http://localhost:1235
+# 5. 在浏览器中打开 http://localhost:1235
 # 通过 Web 界面配置并启动数据采集器和交易机器人
 
 ```
@@ -340,6 +338,34 @@ http://localhost:1235
 # 3. 点击"启动交易机器人"
 ```
 
+## 🔐 Trade 模块加密发布
+
+项目源码中的 `src/api/trade.py` 是公开加载壳，真正的交易实现由 GitHub Actions 使用 `cibuildwheel` 编译为平台相关的加密扩展模块：
+
+- Windows: `.pyd`
+- Linux/macOS: `.so`
+- Python 版本和系统架构由 `cibuildwheel` 自动矩阵构建
+
+构建前在 GitHub 仓库设置 Secret：
+
+```bash
+# macOS
+base64 -i /Users/xiazhi/trade.py | pbcopy
+
+# Linux
+base64 -w 0 /path/to/trade.py
+```
+
+将输出内容保存为仓库 Secret：`TRADE_PY_B64`。
+
+之后在 GitHub Actions 手动运行 **Build protected trade wheels**，生成的 wheel 会作为 artifacts 上传。发布时把这些 wheel 放入 `wheelhouse/` 或 GitHub Releases，用户运行：
+
+```bash
+python setup_environment.py
+```
+
+脚本会自动匹配当前系统和 Python 版本，并把加密后的 Trade 模块安装到 `src/api/`。
+
 ## ⚙️ 配置说明
 
 ### API配置
@@ -358,9 +384,14 @@ http://localhost:1235
 
 ### AI模型配置
 
-系统支持豆包、DeepSeek、通义千问等多种AI模型，**所有配置都可以通过 Web UI 界面完成**，无需手动编辑配置文件。
+系统支持豆包、DeepSeek、通义千问，以及“其他”OpenAI-compatible 模型服务，**所有配置都可以通过 Web UI 界面完成**，无需手动编辑配置文件。
 
 在 Web UI 中选择您的 AI 提供商并填入对应的 API Key 即可。
+
+选择 **其他** 时，填写：
+- API 端点：例如 `https://api.openai.com/v1`，不要包含 `/chat/completions`
+- 模型名称：例如 `gpt-4o-mini`
+- API Key：对应服务商提供的密钥
 
 ### 代理配置
 
@@ -441,6 +472,18 @@ http://localhost:1235
 1. 端口是否被占用
 2. Python路径是否正确
 3. 查看Web服务日志
+
+### Q4: 下单时报错 `All operations failed`
+
+**A:** 多数情况下是 OKX 仓位模式不匹配。请打开 OKX：
+
+1. 进入 **交易界面**
+2. 点击右上角 **3 个点**
+3. 进入 **交易设置**
+4. 找到 **仓位模式**
+5. 改为 **双向持仓**
+
+![OKX 双向持仓设置示意图](static/okx-position-mode-guide.png)
 
 
 

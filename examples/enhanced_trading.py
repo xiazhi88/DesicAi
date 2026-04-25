@@ -191,6 +191,7 @@ class BTCEnhancedBotRaw:
         self.doubao_client = None
         self.deepseek_client = None
         self.qwen_client = None
+        self.custom_ai_client = None
         self.ai_client = None  # 统一AI客户端接口
 
         # 根据配置选择AI提供商
@@ -233,6 +234,20 @@ class BTCEnhancedBotRaw:
                 logger.info(f"✓ 通义千问AI已启用 (模型: {config.QWEN_MODEL}, 超时: {config.QWEN_TIMEOUT}秒)")
             except Exception as e:
                 logger.warning(f"通义千问AI初始化失败: {e}")
+
+        elif config.AI_PROVIDER == 'custom' and config.CUSTOM_AI_BASE_URL and config.CUSTOM_AI_MODEL:
+            try:
+                from src.ai.openai_compatible_client import OpenAICompatibleClient
+                self.custom_ai_client = OpenAICompatibleClient(
+                    api_key=config.CUSTOM_AI_API_KEY,
+                    base_url=config.CUSTOM_AI_BASE_URL,
+                    model=config.CUSTOM_AI_MODEL,
+                    default_timeout=config.CUSTOM_AI_TIMEOUT
+                )
+                self.ai_client = self.custom_ai_client
+                logger.info(f"✓ 其他AI已启用 (OpenAI-compatible, 模型: {config.CUSTOM_AI_MODEL}, 超时: {config.CUSTOM_AI_TIMEOUT}秒)")
+            except Exception as e:
+                logger.warning(f"其他AI初始化失败: {e}")
 
         else:
             logger.warning(f"⚠️ 未配置AI或配置无效 (AI_PROVIDER={config.AI_PROVIDER})")

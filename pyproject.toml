@@ -1,0 +1,20 @@
+[build-system]
+requires = [
+    "setuptools>=68",
+    "wheel",
+    "Cython>=3.0",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+skip = "pp* *-musllinux*"
+test-command = "python -c \"from src.api.trade import TradeAPI; print('TradeAPI import OK')\""
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64", "x86"]
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
