@@ -1,0 +1,57 @@
+name: Build protected trade wheels
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+      - "codex/**"
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-13
+          - macos-14
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Restore protected trade source from secret
+        shell: bash
+        env:
+          TRADE_PY_B64: ${{ secrets.TRADE_PY_B64 }}
+        run: |
+          test -n "$TRADE_PY_B64"
+          mkdir -p build_private
+          python - <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+
+          source = base64.b64decode(os.environ["TRADE_PY_B64"])
+          Path("build_private/_trade.py").write_bytes(source)
+          print("Protected trade source restored for build")
+          PY
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3.4.1
+        env:
+          CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
+          CIBW_BUILD_VERBOSITY: "1"
+
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
