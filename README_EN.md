@@ -1,5 +1,14 @@
 # DesicAI - AI-Powered Cryptocurrency Automated Trading System
 
+> [!WARNING]
+> **This project is no longer maintained.**
+>
+> DesicAI is no longer under active development and will not receive new features, compatibility updates, or bug fixes. Please use the fully upgraded [**Desic Terminal**](https://github.com/xiazhi88/Desic-Terminal).
+>
+> - New project: https://github.com/xiazhi88/Desic-Terminal
+> - Please use **Desic Terminal** for new features, issue reports, and ongoing support.
+> - This repository is retained for historical reference only. Before using this legacy version for live trading, assess the compatibility and financial risks yourself.
+
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)

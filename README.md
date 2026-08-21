@@ -1,5 +1,14 @@
 # DesicAI - AI驱动的加密货币自动化交易系统
 
+> [!WARNING]
+> **本项目已停止维护。**
+>
+> DesicAI 不再继续开发，也不会再提供新功能、兼容性更新或问题修复。请使用全新升级版：[**Desic Terminal**](https://github.com/xiazhi88/Desic-Terminal)。
+>
+> - 新项目地址：https://github.com/xiazhi88/Desic-Terminal
+> - 新功能、问题反馈和后续支持，请前往 **Desic Terminal** 提交 Issue 或参与讨论。
+> - 本仓库仅保留为历史版本参考；继续使用旧版本进行实盘交易，请自行评估兼容性与资金风险。
+
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
